@@ -1,0 +1,98 @@
+---
+import type { GetStaticPaths } from "astro";
+import Pagination from "@/components/common/Pagination.astro";
+import PostPage from "@/components/layout/PostPage.astro";
+import { siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import DraggableStickers from "@/components/features/DraggableStickers.astro";
+import ManualHero from "@/components/widget/ManualHero.astro";
+import MingxinHome from "@/components/layout/MingxinHome.astro";
+import MingxinList from "@/components/layout/MingxinList.astro";
+import { mingxinConfig } from "@/config";
+import "@/styles/banner-home.css";
+import { getSortedPosts } from "@/utils/content-utils";
+import { url } from "@/utils/url-utils";
+export const getStaticPaths = (async ({ paginate }) => {
+	const allBlogPosts = await getSortedPosts();
+	// 使用配置中的文章数量
+	const pageSize = siteConfig.pagination.postsPerPage;
+	return paginate(allBlogPosts, { pageSize });
+}) satisfies GetStaticPaths;
+// https://github.com/withastro/astro/issues/6507#issuecomment-1489916992
+
+const { page } = Astro.props;
+
+const len = page.data.length;
+
+// 列表页隐藏的 h1：首屏用站点标题，后续页用「首页 · 页码」，避免空 h1
+const heading =
+	page.currentPage === 1
+		? siteConfig.title
+		: `${i18n(I18nKey.home)} · ${page.currentPage}`;
+---
+
+<MainGridLayout heading={heading}>
+  {/* 明信首页（第七形态专属）：默认隐藏（main.css 守卫），仅明信点亮；
+      点亮时标准首页内容由 .std-home 守卫让位（mingxin-mode.css） */}
+  {page.currentPage === 1 && mingxinConfig.enabled && <MingxinHome />}
+  <div class="std-home">
+  {page.currentPage === 1 && <DraggableStickers />}
+  {/* 手册主题首页字标 hero：默认隐藏（main.css 守卫），仅纸舟·手册点亮 */}
+  {page.currentPage === 1 && <ManualHero />}
+  {/* 每日选刊只在璨夜瓷砖行显现（站长 2026-10-31 定版），普通形态不再挂 */}
+  <div class="pure-page-info"><span class="pure-page-info-text">第 {page.currentPage} 页 · 本页 {len} 篇，共 {page.total} 篇</span><a href={url("/archive/")}>按年份查看全部文章 →</a></div>
+  <PostPage page={page} />
+  {
+    page.total > page.size && (
+      <Pagination
+        class="mx-auto onload-animation"
+        page={page}
+        style={`animation-delay: calc(var(--content-delay) + ${len * 50}ms)`}
+      />
+    )
+  }
+  {/* 明信文章列表（原站 ArticleListPage 移植）：默认隐藏（main.css 守卫），
+      仅明信点亮；点亮时 PostPage 与旧分页让位（mingxin-mode.css） */}
+  {mingxinConfig.enabled && <MingxinList page={page} />}
+  </div>
+</MainGridLayout>
+
+<script>
+  // 响应式分页处理脚本
+  document.addEventListener("DOMContentLoaded", function () {
+    // 如果启用了响应式分页，添加相应的CSS类
+    const responsiveEnabled = true; // ${siteConfig.pagination.responsive}
+    if (responsiveEnabled) {
+      const deviceType = getDeviceType();
+      document.body.classList.add(`device-${deviceType}`);
+
+      // 监听窗口大小变化
+      let resizeTimeout: any;
+      window.addEventListener("resize", function () {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function () {
+          const newDeviceType = getDeviceType();
+          const currentDeviceType = document.body.className.match(
+            /device-(mobile|tablet|desktop)/
+          )?.[1];
+
+          if (currentDeviceType !== newDeviceType) {
+            document.body.classList.remove(`device-${currentDeviceType}`);
+            document.body.classList.add(`device-${newDeviceType}`);
+          }
+        }, 250);
+      });
+    }
+  });
+
+  function getDeviceType() {
+    if (typeof window === "undefined") return "desktop";
+
+    const width = window.innerWidth;
+    if (width < 768) return "mobile";
+    if (width < 1024) return "tablet";
+    return "desktop";
+  }
+</script>

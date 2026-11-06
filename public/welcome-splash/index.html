@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Breezeの个人博客</title>
+	<link rel="stylesheet" href="welcome.css" />
+</head>
+<body class="welcome">
+	<!-- 天空 / 光晕 / 雾 -->
+	<div class="w-sky">
+		<div class="w-glow w-glow-1"></div>
+		<div class="w-glow w-glow-2"></div>
+		<div class="w-glow w-glow-3"></div>
+		<div class="w-fog" id="wFog"></div>
+	</div>
+
+	<!-- 蝴蝶剪影 -->
+	<div class="w-butterflies" aria-hidden="true">
+		<svg class="bf bf-1" viewBox="0 0 100 80" fill="rgba(255,255,255,.5)">
+			<path d="M50 42 C 30 18, 4 14, 7 34 C 9 48, 28 52, 50 48 Z M50 42 C 70 18, 96 14, 93 34 C 91 48, 72 52, 50 48 Z M50 42 C 41 55, 36 68, 50 74 C 64 68, 59 55, 50 42 Z"></path>
+		</svg>
+		<svg class="bf bf-2" viewBox="0 0 100 80" fill="rgba(180,220,255,.4)">
+			<path d="M50 42 C 30 18, 4 14, 7 34 C 9 48, 28 52, 50 48 Z M50 42 C 70 18, 96 14, 93 34 C 91 48, 72 52, 50 48 Z M50 42 C 41 55, 36 68, 50 74 C 64 68, 59 55, 50 42 Z"></path>
+		</svg>
+		<svg class="bf bf-3" viewBox="0 0 100 80" fill="rgba(255,210,235,.35)">
+			<path d="M50 42 C 30 18, 4 14, 7 34 C 9 48, 28 52, 50 48 Z M50 42 C 70 18, 96 14, 93 34 C 91 48, 72 52, 50 48 Z M50 42 C 41 55, 36 68, 50 74 C 64 68, 59 55, 50 42 Z"></path>
+		</svg>
+	</div>
+
+	<!-- 雨 / 雾画布 -->
+	<canvas id="rain" aria-hidden="true"></canvas>
+	<canvas id="wWipe" class="w-wipe" aria-hidden="true"></canvas>
+
+	<!-- 顶栏 -->
+	<div class="w-topbar">
+		<span class="w-brand serif">Breeze<span>の个人博客</span> <em>— 私人博客</em></span>
+		<button class="icon-btn" id="themeToggle" type="button" aria-label="切换主题">☾</button>
+	</div>
+
+	<!-- 主文案 -->
+	<main class="w-main">
+		<div class="w-kicker reveal">Breeze · EST. 2026 · PERSONAL BLOG</div>
+		<h1 class="serif w-title reveal">Breeze<br /><span class="h1-sub">の个人博客</span></h1>
+		<p class="w-sub serif reveal">一场关于代码与故事的冒险。</p>
+		<p class="w-desc serif reveal">
+			山高自有可行路。<br />
+			水深自有渡船人❤。
+		</p>
+		<div class="w-entries reveal">
+			<a href="/" class="w-enter" id="enterBtn">进入博客</a>
+		</div>
+		<div class="w-hint reveal">— 点击进入 —</div>
+	</main>
+
+	<!-- 左下：音乐 -->
+	<a href="/" class="w-audio" id="wAudio" title="云上音乐">
+		<span class="w-audio-note">♪</span>
+		<span class="w-audio-text">云上音乐</span>
+	</a>
+
+	<!-- 右下：氛围滑块 -->
+	<div class="w-controls">
+		<div class="wc-item">
+			<label for="wcRain">RAIN <b id="wcRainVal">60</b></label>
+			<input type="range" id="wcRain" min="0" max="100" value="60" />
+		</div>
+		<div class="wc-item">
+			<label for="wcMist">MIST <b id="wcMistVal">35</b></label>
+			<input type="range" id="wcMist" min="0" max="100" value="35" />
+		</div>
+		<div class="wc-hint">拖动试试 —— 这场雨由你掌控</div>
+	</div>
+
+	<script src="welcome.js" defer></script>
+</body>
+</html>

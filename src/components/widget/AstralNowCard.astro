@@ -1,0 +1,229 @@
+---
+import MusicPlayer from "@/components/features/MusicPlayer.astro";
+import { siteConfig } from "@/config";
+import { musicPlayerConfig } from "@/config/musicConfig";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+
+// 璨夜 bento 格位 · 「此刻」合并卡：占第一、二行右列一整张玻璃卡。上半是
+// 音乐播放器——与侧栏、导航栏那两份是同一个播放器的不同视图（全局
+// MusicPlayerView 脚本会把页面上所有 .music-player-widget 一并初始化、
+// 状态互通），合卡只是把侧栏那份在 bento 里的落位收进本卡（侧栏原格在
+// astral-mode.css 里于同作用域隐藏，避免同页出现两份可见播放器）。
+// 下半是「接下来播放」歌单预览：与播放器同一份歌单数据——本地模式直接
+// 服务端渲染歌单前四首；Meting 模式运行时拉歌单接口（主接口 + 备用接口
+// 依次回退），拉不到就保留一言兜底文案，不留空白。
+// 原下半的设备在线已删除：/api/device-status 线上被探针以 403 拒绝、格里
+// 常年只显示「设备状态未知」，站长拍板直接删（函数本体 functions/api/
+// device-status.js 随本批一并删除）。显隐与落位见 astral-mode.css。
+
+const isLocal = musicPlayerConfig.mode === "local";
+const nextTracks = isLocal
+	? (musicPlayerConfig.local?.playlist ?? []).slice(0, 4)
+	: [];
+---
+
+<div class="card-base astral-tile astral-tile--now">
+	<div class="now-music">
+		<div class="now-head" aria-hidden="true">
+			<span class="now-title">{i18n(I18nKey.music)}</span>
+		</div>
+		<MusicPlayer id="astral-now-music" />
+	</div>
+
+	<div class="now-divider" role="separator"></div>
+
+	<div class="now-next" data-next-panel>
+		<span class="next-eyebrow">接下来播放</span>
+		{isLocal ? (
+			<ol class="next-list">
+				{nextTracks.map((t) => (
+					<li>
+						<span class="next-title">{t.name}</span>
+						<span class="next-artist">{t.artist}</span>
+					</li>
+				))}
+			</ol>
+		) : (
+			<>
+				<p class="next-fallback" data-next-fallback>{siteConfig.subtitle}</p>
+				<ol class="next-list" data-next-list hidden></ol>
+			</>
+		)}
+	</div>
+</div>
+
+<style>
+	.astral-tile--now {
+		flex-direction: column;
+		padding: 1rem 1rem 1.1rem;
+		color: inherit;
+	}
+	.now-music {
+		flex: 1 1 0;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+	.now-head {
+		margin: 0.25rem 0 0.5rem 0.75rem;
+	}
+	.now-title {
+		position: relative;
+		font-weight: 700;
+		font-size: 1.125rem;
+		line-height: 1.4;
+	}
+	.now-title::before {
+		content: "";
+		position: absolute;
+		left: -0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 0.25rem;
+		height: 1rem;
+		border-radius: 0.375rem;
+		background: var(--primary);
+	}
+	.now-divider {
+		height: 1px;
+		margin: 0.85rem 0.25rem;
+		background: rgb(148 163 184 / 0.28);
+	}
+	.now-next {
+		flex: 1 1 0;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 0.45rem;
+		padding: 0 0.25rem;
+	}
+	.next-eyebrow {
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.22em;
+		color: var(--primary);
+	}
+	.next-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.32rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.next-list li {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		min-width: 0;
+		font-size: 0.92rem;
+		line-height: 1.45;
+	}
+	.next-title {
+		font-weight: 600;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.next-artist {
+		opacity: 0.55;
+		font-size: 0.82rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.next-fallback {
+		font-size: 0.92rem;
+		opacity: 0.6;
+	}
+</style>
+
+{!isLocal && (
+	<script>
+		import { musicPlayerConfig } from "@/config/musicConfig";
+
+		// 歌单预览拉取：仅在本卡真正可见（璨夜 + 首页 + 桌面 bento）时拉一次；
+		// 形态切进璨夜时经 siteModeChange 再检查一次。IIFE + window 标记防
+		// 重复（节点在 Swup 容器外、跨页存活）。主接口失败依次换备用接口，
+		// 全部失败保留服务端的一言兜底，不留空白高个。
+		(() => {
+			const w = window as unknown as Record<string, unknown>;
+			if (w.__astralNextInit) return;
+			const panel = document.querySelector<HTMLElement>("[data-next-panel]");
+			if (!panel) return;
+			w.__astralNextInit = true;
+
+			const list = panel.querySelector<HTMLOListElement>("[data-next-list]");
+			const fallback = panel.querySelector<HTMLElement>("[data-next-fallback]");
+			if (!list) return;
+
+			let started = false;
+			const m = musicPlayerConfig.meting;
+			const build = (tpl: string) =>
+				tpl
+					.replace(":server", m.server)
+					.replace(":type", m.type)
+					.replace(":id", m.id)
+					.replace(":r", String(Math.random()));
+
+			interface Track {
+				title?: string;
+				author?: string;
+			}
+
+			function render(tracks: Track[]) {
+				const items = tracks.slice(0, 4);
+				if (!items.length) return;
+				list.replaceChildren(
+					...items.map((t) => {
+						const li = document.createElement("li");
+						const title = document.createElement("span");
+						title.className = "next-title";
+						title.textContent = t.title || "";
+						const artist = document.createElement("span");
+						artist.className = "next-artist";
+						artist.textContent = t.author || "";
+						li.append(title, artist);
+						return li;
+					}),
+				);
+				list.hidden = false;
+				if (fallback) fallback.hidden = true;
+			}
+
+			async function load() {
+				const apis = [m.api, ...(m.fallbackApis ?? [])];
+				for (const tpl of apis) {
+					try {
+						const ctrl = new AbortController();
+						const timer = window.setTimeout(() => ctrl.abort(), 8000);
+						const res = await fetch(build(tpl), { signal: ctrl.signal });
+						window.clearTimeout(timer);
+						if (!res.ok) continue;
+						const data = (await res.json()) as Track[];
+						if (Array.isArray(data) && data.length) {
+							render(data);
+							return;
+						}
+					} catch {
+						// 换下一个接口
+					}
+				}
+			}
+
+			function maybeStart() {
+				if (started) return;
+				if (document.documentElement.dataset.siteMode !== "astral") return;
+				if (panel.offsetParent === null) return;
+				started = true;
+				void load();
+			}
+
+			maybeStart();
+			window.addEventListener("siteModeChange", maybeStart);
+		})();
+	</script>
+)}

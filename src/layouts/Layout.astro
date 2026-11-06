@@ -1,0 +1,1137 @@
+---
+import GoogleAnalytics from "@components/analytics/GoogleAnalytics.astro";
+import La51Analytics from "@components/analytics/La51Analytics.astro";
+import MicrosoftClarity from "@components/analytics/MicrosoftClarity.astro";
+import UmamiAnalytics from "@components/analytics/UmamiAnalytics.astro";
+import AstralStarfield from "@components/features/AstralStarfield.astro";
+import CodeGroupManager from "@components/features/CodeGroupManager.astro";
+import FancyboxManager from "@components/features/FancyboxManager.astro";
+import FontSetup from "@components/features/FontSetup.astro";
+import GithubCardManager from "@components/features/GithubCardManager.astro";
+import MusicManager from "@components/features/MusicManager.astro";
+import MusicPlayerView from "@components/features/MusicPlayerView.astro";
+import SakuraEffect from "@components/features/SakuraEffect.astro";
+import ParticleEffects from "@components/features/ParticleEffects.astro";
+import DanmakuLayer from "@components/features/DanmakuLayer.astro";
+import FloatingPlayer from "@components/features/FloatingPlayer.astro";
+import FloatingFish from "@components/features/FloatingFish.astro";
+import MingxinMusicPlayer from "@components/features/MingxinMusicPlayer.astro";
+import MingxinMobileDock from "@components/layout/MingxinMobileDock.astro";
+import { featuresConfig } from "@/config/featuresConfig";
+import WavesEffect from "@components/features/WavesEffect.astro";
+import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
+
+import {
+	analyticsConfig,
+	backgroundWallpaper,
+	commentConfig,
+	displaySettingsConfig,
+	expressiveCodeConfig,
+	mingxinConfig,
+	musicPlayerConfig,
+	navbarMode,
+	profileConfig,
+	siteConfig,
+} from "@/config";
+import {
+	BANNER_HEIGHT,
+	BANNER_HEIGHT_HOME,
+	BANNER_HEIGHT_NON_HOME,
+	BANNER_HEIGHT_NON_HOME_MIN,
+	PAGE_WIDTH,
+} from "@/constants/constants";
+import { defaultFavicons } from "@/constants/icon";
+import type { Favicon } from "@/types/config";
+import { isHomePage } from "@/utils/layout-utils";
+import { getAuthorAvatarUrl, getSiteLogo } from "@/utils/schema-image";
+import { buildSiteGraph, toAbsoluteUrl } from "@/utils/schema-utils";
+import { getOgLocale } from "@/utils/site-config-utils";
+import { getCanonicalUrl, url } from "@/utils/url-utils";
+
+import "@/styles/main.css";
+import "@/styles/immersive-reading.css";
+// 四套形态样式不进主包：以独立文件出产物，头部按访客当前形态只阻塞加载
+// 一份、其余空闲预载（见 head 里的形态 CSS 加载脚本），切换形态不闪烁、
+// 默认形态访客不再白下其余三套的解析与匹配成本。
+import pureModeCssUrl from "@/styles/pure-mode.css?url";
+import harmonyModeCssUrl from "@/styles/harmony-mode.css?url";
+import brickModeCssUrl from "@/styles/brick-mode.css?url";
+import astralModeCssUrl from "@/styles/astral-mode.css?url";
+import paperModeCssUrl from "@/styles/paper-mode.css?url";
+import mingxinModeCssUrl from "@/styles/mingxin-mode.css?url";
+import mingxinDatalayerCssUrl from "@/styles/mingxin-datalayer.css?url";
+import "@/styles/variables.styl";
+import "@rehype-callouts-theme";
+
+interface Props {
+	title?: string;
+	description?: string;
+	lang?: string;
+	setOGTypeArticle?: boolean;
+	postSlug?: string;
+	postCoverImage?: string;
+	ogImageWidth?: number;
+	ogImageHeight?: number;
+	ogImageAlt?: string;
+	hasWallpaper?: boolean;
+}
+
+let {
+	title,
+	description,
+	lang,
+	setOGTypeArticle,
+	postSlug,
+	postCoverImage,
+	ogImageWidth: propsOgImageWidth,
+	ogImageHeight: propsOgImageHeight,
+	ogImageAlt: propsOgImageAlt,
+	hasWallpaper = false,
+} = Astro.props;
+
+// apply a class to the body element to decide the height of the banner, only used for initial page load
+// Swup can update the body for each page visit, but it's after the page transition, causing a delay for banner height change
+// so use Swup hooks instead to change the height immediately when a link is clicked
+const isHomePageCheck = isHomePage(Astro.url.pathname);
+
+// defines global css variables
+// why doing this in Layout instead of GlobalStyles: https://github.com/withastro/astro/issues/6728#issuecomment-1502203757
+const configHue = siteConfig.themeColor.hue;
+
+// 获取导航栏透明模式配置（banner 模式专属）
+const navbarTransparentMode =
+	backgroundWallpaper.banner?.navbar?.transparentMode || "semi";
+// 判断是否应该显示顶部高光效果（只在 semifull 动态透明模式下显示）
+const shouldShowTopHighlight = navbarTransparentMode === "semifull";
+
+// 全屏壁纸布局：classic 为文档流旧版，hero 为固定首屏新版
+const fullscreenLayout = backgroundWallpaper.fullscreen?.layout ?? "classic";
+
+// 子菜单 / 浮动面板的毛玻璃模糊度：跟随 navbar.blur，但不受壁纸模式影响，
+// 且带一个最小值 —— 导航栏可以用 blur: 0 关掉毛玻璃，面板则始终保留毛玻璃。
+// 之所以不复用 #navbar 上的 --navbar-glass-blur：
+// setting-utils.ts 的 updateNavbarTransparency() 会在切到 overlay / none 模式时
+// 把它清成 0px；这里放到 :root 上，同时也能让不在导航栏 DOM 内的
+// .float-panel（#translate-panel、#mobile-toc-panel）继承到。
+const NAVBAR_PANEL_MIN_BLUR = 2;
+const navbarPanelBlur = Math.max(
+	backgroundWallpaper.banner?.navbar?.blur ?? 20,
+	NAVBAR_PANEL_MIN_BLUR,
+);
+
+let pageTitle: string;
+if (title) {
+	pageTitle = `${title} - ${siteConfig.title}`;
+} else {
+	pageTitle = siteConfig.subtitle
+		? `${siteConfig.title} - ${siteConfig.subtitle}`
+		: siteConfig.title;
+}
+
+const favicons: Favicon[] =
+	siteConfig.favicon.length > 0 ? siteConfig.favicon : defaultFavicons;
+// apple-touch-icon：优先取 favicon 中的 png，否则取第一个
+const appleTouchIcon =
+	favicons.find((f) => f.src.toLowerCase().endsWith(".png")) ?? favicons[0];
+
+// const siteLang = siteConfig.lang.replace('_', '-')
+if (!lang) {
+	lang = `${siteConfig.lang}`;
+}
+const siteLang = lang.replace("_", "-");
+
+// 首页站点级结构化数据用的作者头像 URL（Person.image），经 toAbsoluteImageUrl 三分解析
+const avatarUrl = await getAuthorAvatarUrl();
+// 作者个人页（/about/）绝对 URL，作为 Person.url
+const aboutUrl =
+	toAbsoluteUrl("/about/", siteConfig.site_url) ?? siteConfig.site_url;
+// 站点 publisher logo（Organization.logo），用于首页 @graph 的 Organization 节点
+const siteLogo = await getSiteLogo();
+
+// canonical：对 /archive/ 与 /search/ 剥离查询串，避免筛选视图自我 canonical 到 ?tag= 等
+const canonicalUrl = getCanonicalUrl(Astro.url);
+
+// OG 图片：文章走生成图/封面，非文章页回退到站点预览图
+// 社交分享卡片简介：只供 og:description / twitter:description，与站点描述分开
+const socialDescription = "The journey is the reward.";
+let ogImageUrl: string | undefined;
+let ogImageWidth: number | undefined;
+let ogImageHeight: number | undefined;
+const isGeneratedOg = siteConfig.post.generateOgImages && postSlug;
+if (isGeneratedOg) {
+	ogImageUrl = new URL(`/og/${postSlug}.png`, Astro.site).toString();
+	ogImageWidth = 1200;
+	ogImageHeight = 630;
+} else if (postCoverImage) {
+	ogImageUrl = postCoverImage; // 已由文章页算成绝对 URL
+	ogImageWidth = propsOgImageWidth;
+	ogImageHeight = propsOgImageHeight;
+} else {
+	// 站点级预览图：public 固定地址，1200×630，链接分享卡片用
+	ogImageUrl = new URL("/og-cover.jpg", Astro.site).toString();
+	ogImageWidth = 1200;
+	ogImageHeight = 630;
+}
+const ogImageAlt = propsOgImageAlt ?? pageTitle;
+
+// 使用固定的banner偏移量，position配置用于图片定位
+---
+
+<!doctype html>
+<html lang={siteLang} class="bg-(--page-bg) text-[14px] md:text-[16px]" data-wallpaper-mode={backgroundWallpaper.mode} data-fullscreen-layout={fullscreenLayout} data-has-wallpaper={hasWallpaper ? "" : undefined} data-tag-style={siteConfig.tagStyle ?? "pill"} data-category-style={siteConfig.categoryStyle ?? "rectangle"} data-navbar-style={siteConfig.navbar.navbarStyle ?? "classic"} data-site-mode={siteConfig.siteMode ?? "full"} data-harmony-font={siteConfig.harmonyFont ?? "default"} data-brick-font={siteConfig.brickFont ?? "default"} data-star-font={siteConfig.starFont ?? "default"} data-astral-theme={siteConfig.astralTheme ?? "solid"} data-paper-theme={siteConfig.paperTheme ?? "ink"} data-astral-layout={siteConfig.astralLayout ?? "bento"} data-texture-preset={mingxinConfig.texturePreset ?? "jigsaw"} data-mingxin-afterglow={mingxinConfig.afterglowDefault ?? "hero"}>
+  <head>
+    <meta charset="UTF-8" />
+    {/* 开屏资格判定：必须在 <head> 同步执行。若等到 body 里的 defer 脚本再判定，
+        正文早已绘制，开屏 iframe 会「迟到」盖上来，于是先看到内容再闪成开屏。
+        判定条件 = 本次会话的第一屏 + 当前就是首页；两个条件都满足才给 <html>
+        打 splash-eligible，让 body 第一个节点（开屏 iframe）从首帧起就可见。
+        注意：这里只「放行」不「记账」，真正记已看是在开屏揭幕时（splash-entry.js）。
+        否则遇到本站在 load 后的自愈重载（?mxheal=），第二次加载会误判成已看过，
+        开屏刚出现就被 reload 吞掉。 */}
+    {siteConfig.splashEnabled !== false && (
+      <script is:inline>
+        (function () {
+          var home =
+            location.pathname === "/" || location.pathname === "/index.html";
+          var done = true;
+          try {
+            done = sessionStorage.getItem("welcomeSplashDone") === "1";
+          } catch (e) {
+            done = false;
+          }
+          if (done) return;
+          if (home) {
+            document.documentElement.classList.add("splash-eligible");
+            document.documentElement.style.overflow = "hidden";
+            return;
+          }
+          // 第一屏不是首页：本会话不再给开屏机会
+          try {
+            sessionStorage.setItem("welcomeSplashDone", "1");
+          } catch (e) {}
+        })();
+      </script>
+    )}
+    {siteConfig.splashEnabled !== false && (
+      <style is:inline>
+        #welcomeSplashFrame {
+          position: fixed;
+          inset: 0;
+          width: 100vw;
+          height: 100vh;
+          margin: 0;
+          border: 0;
+          z-index: 2147483000;
+          background: #0e1310;
+          display: none;
+          opacity: 1;
+          transition: opacity 0.45s ease;
+        }
+        html.splash-eligible #welcomeSplashFrame {
+          display: block;
+        }
+        #welcomeSplashFrame.splash-out {
+          opacity: 0;
+          pointer-events: none;
+        }
+      </style>
+    )}
+    {commentConfig?.type === "waline" && commentConfig?.waline?.serverURL && (
+      <link rel="preconnect" href={commentConfig.waline.serverURL} crossorigin />
+    )}
+    <style is:inline>
+			@layer properties, theme, base, components, utilities;
+		</style>
+    {analyticsConfig?.googleAnalyticsId && (
+            <GoogleAnalytics analyticsId={analyticsConfig.googleAnalyticsId} />
+    )}
+    {analyticsConfig?.microsoftClarityId && (
+            <MicrosoftClarity clarityId={analyticsConfig.microsoftClarityId} />
+    )}
+        {analyticsConfig?.umamiAnalytics?.websiteId && (
+          <UmamiAnalytics
+          websiteId={analyticsConfig.umamiAnalytics.websiteId}
+          scriptUrl={analyticsConfig.umamiAnalytics.scriptUrl}
+          replaysScriptUrl={analyticsConfig.umamiAnalytics.replaysScriptUrl}
+          trackOutboundLinks={analyticsConfig.umamiAnalytics.trackOutboundLinks}
+          collectWebVitals={analyticsConfig.umamiAnalytics.collectWebVitals}
+          replays={analyticsConfig.umamiAnalytics.replays}
+          />
+        )}
+        {analyticsConfig?.la51Analytics?.Id && (
+            <La51Analytics
+            analyticsId={analyticsConfig.la51Analytics.Id}
+            sdkUrl={analyticsConfig.la51Analytics?.sdkUrl}
+            ck={analyticsConfig.la51Analytics?.ck}
+            autoTrack={analyticsConfig.la51Analytics?.autoTrack}
+            hashMode={analyticsConfig.la51Analytics?.hashMode}
+            screenRecord={analyticsConfig.la51Analytics?.screenRecord}
+            />
+    )}
+
+    <title>{pageTitle}</title>
+    <meta
+      name="description"
+      content={description || siteConfig.description || pageTitle}
+    />
+    {
+      siteConfig.keywords && siteConfig.keywords.length > 0 && (
+        <meta name="keywords" content={siteConfig.keywords.join(", ")} />
+      )
+    }
+    <meta name="author" content={profileConfig.name} />
+
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:site_name" content={siteConfig.title} />
+    <meta property="og:locale" content={getOgLocale(lang)} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={pageTitle} />
+    <meta
+      property="og:description"
+      content={description || socialDescription}
+    />
+    {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+    {ogImageUrl && ogImageWidth && <meta property="og:image:width" content={String(ogImageWidth)} />}
+    {ogImageUrl && ogImageHeight && <meta property="og:image:height" content={String(ogImageHeight)} />}
+    {ogImageUrl && <meta property="og:image:alt" content={ogImageAlt} />}
+    {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
+    {ogImageUrl && <meta name="twitter:image:alt" content={ogImageAlt} />}
+    {
+      setOGTypeArticle ? (
+        <meta property="og:type" content="article" />
+      ) : (
+        <meta property="og:type" content="website" />
+      )
+    }
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalUrl} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta
+      name="twitter:description"
+      content={description || socialDescription}
+    />
+
+    {
+      isHomePageCheck && (
+        <script
+          is:inline
+          type="application/ld+json"
+          set:html={JSON.stringify(
+            buildSiteGraph({
+              site: siteConfig.site_url,
+              siteConfig,
+              profileConfig,
+              lang: siteLang,
+              authorUrl: aboutUrl,
+              avatarUrl,
+              logo: siteLogo,
+            }),
+          )}
+        />
+      )
+    }
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content={`hsl(${siteConfig.themeColor.hue} 90% 60%)`} />
+    {
+      favicons.map((favicon) => (
+        <link
+          rel="icon"
+          href={favicon.src.startsWith("/") ? url(favicon.src) : favicon.src}
+          sizes={favicon.sizes}
+          media={favicon.theme && `(prefers-color-scheme: ${favicon.theme})`}
+        />
+      ))
+    }
+    {appleTouchIcon && (
+      <link
+        rel="apple-touch-icon"
+        href={appleTouchIcon.src.startsWith("/") ? url(appleTouchIcon.src) : appleTouchIcon.src}
+        type="image/png"
+        sizes={appleTouchIcon.sizes}
+      />
+    )}
+
+    <!-- 为特定域名的图片添加 referrerpolicy 以解决 403 问题 -->
+    <!-- 注：静态图片（ImageWrapper 组件、Markdown 正文图）已在构建期加好 referrerpolicy；
+         此脚本仅作为运行时兜底，处理动态注入的图片（解密内容、第三方评论/统计部件等）。 -->
+    {siteConfig.imageOptimization?.noReferrerDomains &&
+     siteConfig.imageOptimization.noReferrerDomains.length > 0 && (
+      <script
+        is:inline
+        define:vars={{
+          noReferrerDomains: JSON.stringify(
+            siteConfig.imageOptimization.noReferrerDomains
+          ),
+        }}
+      >
+        (function() {
+          const domains = JSON.parse(noReferrerDomains);
+
+          // 域名匹配函数，支持通配符
+          function matchesDomain(urlStr, patterns) {
+            try {
+              const urlObj = new URL(urlStr);
+              const hostname = urlObj.hostname;
+
+              return patterns.some(function(pattern) {
+                const regexPattern = pattern.replace(/\./g, '\\.').replace(/\*/g, '.*');
+                const regex = new RegExp('^' + regexPattern + '$');
+                return regex.test(hostname);
+              });
+            } catch (e) {
+              return false;
+            }
+          }
+
+          // 处理单个图片元素
+          function processImage(img) {
+            if (!img.src || img.hasAttribute('referrerpolicy')) return;
+
+            if (matchesDomain(img.src, domains)) {
+              img.setAttribute('referrerpolicy', 'no-referrer');
+            }
+          }
+
+          // 兜底扫描一次当前页面（构建期已处理的图片会因已有属性而快速跳过）
+          document.querySelectorAll('img').forEach(processImage);
+
+          // 使用 MutationObserver 监听动态加载/注入的图片
+          const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              mutation.addedNodes.forEach(function(node) {
+                if (node.nodeName === 'IMG') {
+                  processImage(node);
+                }
+                if (node.querySelectorAll) {
+                  node.querySelectorAll('img').forEach(processImage);
+                }
+              });
+            });
+          });
+
+          observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+          });
+        })();
+      </script>
+    )}
+
+    <!-- Set the theme before the page is rendered to avoid a flash -->
+    <script
+      is:inline
+      define:vars={{
+        PAGE_WIDTH,
+        configHue,
+        defaultMode: siteConfig.themeColor.defaultMode ?? "light",
+        defaultWallpaperMode: backgroundWallpaper.mode,
+        isWallpaperSwitchable:
+          displaySettingsConfig.wallpaperModeSwitchable,
+        isFullscreenLayoutSwitchable:
+          displaySettingsConfig.fullscreenLayoutSwitchable,
+        darkTheme: expressiveCodeConfig.darkTheme,
+        lightTheme: expressiveCodeConfig.lightTheme,
+        baseUrl: import.meta.env.BASE_URL,
+        cardTransparentOpacity: backgroundWallpaper.overlay?.cardOpacity ?? 0.6,
+        fullscreenLayout,
+        defaultNavbarStyle: siteConfig.navbar.navbarStyle ?? "classic",
+        isNavbarStyleSwitchable:
+          displaySettingsConfig.navbarStyleSwitchable,
+        defaultSiteMode: siteConfig.siteMode ?? "full",
+        defaultMingxinTexture: mingxinConfig.texturePreset ?? "jigsaw",
+        mingxinConfigTextureOpacity: mingxinConfig.textureOpacity ?? 0.12,
+        defaultMingxinAfterglow: mingxinConfig.afterglowDefault ?? "hero",
+        isSiteModeSwitchable: displaySettingsConfig.siteModeSwitchable,
+        defaultAstralTheme: siteConfig.astralTheme ?? "solid",
+        defaultPaperTheme: siteConfig.paperTheme ?? "ink",
+        defaultPaperHue: siteConfig.paperHue ?? 177,
+        defaultAstralLayout: siteConfig.astralLayout ?? "bento",
+        pureFontMenu: siteConfig.pureFontMenu ?? ["system"],
+      }}
+    >
+      // 主题初始化 - 与setting-utils.ts保持一致
+      const LIGHT_MODE = "light";
+      const DARK_MODE = "dark";
+      const SYSTEM_MODE = "system";
+
+      // 获取存储的主题，如果没有则使用默认值
+      const theme = localStorage.getItem("theme") || defaultMode;
+
+      // 获取系统主题
+      function getSystemTheme() {
+        return window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? DARK_MODE
+          : LIGHT_MODE;
+      }
+
+      // 解析主题（如果是system模式，则获取系统主题）
+      function resolveTheme(themeValue) {
+        if (themeValue === SYSTEM_MODE) {
+          return getSystemTheme();
+        }
+        return themeValue;
+      }
+
+      const resolvedTheme = resolveTheme(theme);
+      const isDark = resolvedTheme === DARK_MODE;
+
+      // 应用主题
+      if (isDark) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+
+      // Set the theme for Expressive Code
+      document.documentElement.setAttribute(
+        "data-theme",
+        isDark ? darkTheme : lightTheme
+      );
+
+      // Load the hue from local storage
+      const hue = localStorage.getItem("hue") || configHue;
+      document.documentElement.style.setProperty("--hue", hue);
+
+      // 设置卡片透明度（全屏透明模式下使用），优先使用用户自定义值
+      const storedCardOpacity = localStorage.getItem("overlayCardOpacity");
+      const parsedCardOpacity = storedCardOpacity === null ? NaN : Number.parseFloat(storedCardOpacity);
+      const resolvedCardOpacity = Number.isFinite(parsedCardOpacity)
+        ? Math.min(1, Math.max(0, parsedCardOpacity))
+        : cardTransparentOpacity;
+      document.documentElement.style.setProperty("--card-transparent-opacity", String(resolvedCardOpacity));
+
+      // 仅在允许切换时使用设置面板保存的运行时选择；否则配置值始终生效
+      const storedFullscreenLayout = isFullscreenLayoutSwitchable
+        ? localStorage.getItem("fullscreenLayout")
+        : null;
+      if (!isFullscreenLayoutSwitchable) {
+        localStorage.removeItem("fullscreenLayout");
+      }
+      const resolvedFullscreenLayout =
+        storedFullscreenLayout === "hero" || storedFullscreenLayout === "classic"
+          ? storedFullscreenLayout
+          : fullscreenLayout;
+      document.documentElement.setAttribute(
+        "data-fullscreen-layout",
+        resolvedFullscreenLayout,
+      );
+
+      // 内容定位已由 --content-top 纯 CSS 决定（layout-base.css），无需 --banner-height-extend 变量/计算
+
+      // 初始化壁纸模式 - 在页面渲染前同步应用（其余布局由 CSS 属性选择器接管）
+      const wallpaperMode = isWallpaperSwitchable
+        ? localStorage.getItem("wallpaperMode") || defaultWallpaperMode
+        : defaultWallpaperMode;
+
+      // 设置data-wallpaper-mode属性
+      document.documentElement.setAttribute(
+        "data-wallpaper-mode",
+        wallpaperMode
+      );
+
+      // 初始化导航栏样式 - 优先 localStorage（显示设置里改过时），否则用配置默认
+      const navbarStyleStored = isNavbarStyleSwitchable
+        ? localStorage.getItem("navbarStyle")
+        : null;
+      if (!isNavbarStyleSwitchable) {
+        localStorage.removeItem("navbarStyle");
+      }
+      const resolvedNavbarStyle = [
+        "classic",
+        "float",
+        "capsule",
+        "segment",
+      ].includes(navbarStyleStored)
+        ? navbarStyleStored
+        : defaultNavbarStyle;
+      document.documentElement.setAttribute(
+        "data-navbar-style",
+        resolvedNavbarStyle
+      );
+
+      // 初始化站点形态 - 优先 localStorage（显示设置里改过时），否则用配置默认
+      const siteModeStored = isSiteModeSwitchable
+        ? localStorage.getItem("siteMode")
+        : null;
+      if (!isSiteModeSwitchable) {
+        localStorage.removeItem("siteMode");
+      }
+      const resolvedSiteMode = ["full", "pure", "harmony", "brick", "astral", "paper", "mingxin"].includes(siteModeStored)
+        ? siteModeStored
+        : defaultSiteMode;
+      document.documentElement.setAttribute(
+        "data-site-mode",
+        resolvedSiteMode
+      );
+
+      // 初始化明信背景纹理预设 - 优先 localStorage（日后调色板/控制台改过时），否则用 mingxinConfig 默认；
+      // 属性只在 html[data-site-mode="mingxin"] 作用域内被 mingxin-mode.css 消费，其他形态下挂着不生效
+      const mingxinTextureStored = localStorage.getItem("mingxinTexture");
+      const resolvedMingxinTexture = mingxinTextureStored || defaultMingxinTexture;
+      document.documentElement.setAttribute(
+        "data-texture-preset",
+        resolvedMingxinTexture
+      );
+      document.documentElement.style.setProperty(
+        "--texture-opacity",
+        String(mingxinConfigTextureOpacity)
+      );
+
+      // 初始化明信终幕内容区变体 - 优先 localStorage（日后调色板明信段/控制台主题卡切换），
+      // 否则用 mingxinConfig 默认（hero=「Hero」/ classic=「经典」）；切换 UI 在三期，
+      // 一期只接属性与首帧脚本（照纸舟子主题同款模式）
+      const mingxinAfterglowStored = localStorage.getItem("mingxinAfterglow");
+      const resolvedMingxinAfterglow = ["hero", "classic"].includes(
+        mingxinAfterglowStored
+      )
+        ? mingxinAfterglowStored
+        : defaultMingxinAfterglow;
+      document.documentElement.setAttribute(
+        "data-mingxin-afterglow",
+        resolvedMingxinAfterglow
+      );
+
+      // 初始化璨夜子主题 - 优先 localStorage（调色板外观页签、站点形态下方改过时），否则用配置默认；
+      // 属性只在 html[data-site-mode="astral"] 作用域内被 astral-mode.css 消费，其他形态下挂着不生效
+      const astralThemeStored = localStorage.getItem("astralTheme");
+      const resolvedAstralTheme = ["solid", "starfield"].includes(astralThemeStored)
+        ? astralThemeStored
+        : defaultAstralTheme;
+      document.documentElement.setAttribute(
+        "data-astral-theme",
+        resolvedAstralTheme
+      );
+
+      // 初始化璨夜主题布局 - 优先 localStorage（调色板外观页签、璨夜主题下方改过时），否则用配置默认；
+      // 骨架规则只在 astral-mode.css 的 [data-astral-layout="bento"] 作用域内消费，其他形态下挂着不生效
+      const astralLayoutStored = localStorage.getItem("astralLayout");
+      const resolvedAstralLayout = ["bento", "classic"].includes(astralLayoutStored)
+        ? astralLayoutStored
+        : defaultAstralLayout;
+      document.documentElement.setAttribute(
+        "data-astral-layout",
+        resolvedAstralLayout
+      );
+
+      // 初始化纸舟子主题 - 优先 localStorage（调色板外观页签、站点形态下方改过时），否则用配置默认；
+      // 属性只在 html[data-site-mode="paper"] 作用域内被 paper-mode.css 消费，其他形态下挂着不生效
+      const paperThemeStored = localStorage.getItem("paperTheme");
+      const resolvedPaperTheme = ["ink", "manual"].includes(paperThemeStored)
+        ? paperThemeStored
+        : defaultPaperTheme;
+      document.documentElement.setAttribute(
+        "data-paper-theme",
+        resolvedPaperTheme
+      );
+
+      // 初始化纸面主题色（独立色相）- 优先 localStorage paperHue，否则配置默认；
+      // 经 --paper-hue 喂 paper-mode.css 的墨色令牌，其他形态/主题下挂着不生效
+      const paperHueStored = localStorage.getItem("paperHue");
+      const paperHueParsed =
+        paperHueStored === null ? NaN : parseFloat(paperHueStored);
+      const resolvedPaperHue = Number.isNaN(paperHueParsed)
+        ? defaultPaperHue
+        : Math.min(360, Math.max(0, Math.round(paperHueParsed)));
+      document.documentElement.style.setProperty(
+        "--paper-hue",
+        String(resolvedPaperHue)
+      );
+
+      // 初始化谐彩专属调色板 - 独立 harmony* 存储键，首帧前落位防闪烁；
+      // 属性与变量只在 html[data-site-mode="harmony"] 作用域内被 harmony-mode.css 消费，
+      // 华彩 / 素简下挂着也不生效。键与默认值同 utils/setting-utils 的谐彩段。
+      (function applyHarmonySettings() {
+        const root = document.documentElement;
+        const hueStored = localStorage.getItem("harmonyHue");
+        if (hueStored !== null) {
+          const hueParsed = parseFloat(hueStored);
+          if (!isNaN(hueParsed)) {
+            root.style.setProperty(
+              "--harmony-hue",
+              String(Math.min(360, Math.max(0, Math.round(hueParsed))))
+            );
+          }
+        }
+        const schemeStored = localStorage.getItem("harmonyScheme");
+        root.setAttribute(
+          "data-harmony-scheme",
+          [
+            "tonalSpot",
+            "vibrant",
+            "expressive",
+            "fidelity",
+            "content",
+            "neutral",
+            "monochrome",
+            "rainbow",
+            "fruitSalad",
+          ].includes(schemeStored)
+            ? schemeStored
+            : "tonalSpot"
+        );
+        root.setAttribute(
+          "data-harmony-spec",
+          localStorage.getItem("harmonySpec") === "2021" ? "2021" : "2025"
+        );
+        const textureStored = localStorage.getItem("harmonyTexture");
+        root.setAttribute(
+          "data-harmony-texture",
+          [
+            "none",
+            "starlight",
+            "cyber-dots",
+            "topography",
+            "geometric",
+            "sakura",
+          ].includes(textureStored)
+            ? textureStored
+            : "starlight"
+        );
+        const textureOpacityStored = localStorage.getItem("harmonyTextureOpacity");
+        if (textureOpacityStored !== null) {
+          const textureOpacityParsed = parseFloat(textureOpacityStored);
+          if (!isNaN(textureOpacityParsed)) {
+            root.style.setProperty(
+              "--harmony-texture-opacity",
+              String(Math.min(1, Math.max(0, textureOpacityParsed)))
+            );
+          }
+        }
+        if (localStorage.getItem("harmonyMotion") === "reduced") {
+          root.setAttribute("data-harmony-motion", "reduced");
+        }
+        const harmonyOverlayOpacity = localStorage.getItem("harmonyOverlayOpacity");
+        if (harmonyOverlayOpacity !== null) {
+          const parsed = parseFloat(harmonyOverlayOpacity);
+          if (!isNaN(parsed)) {
+            root.style.setProperty(
+              "--harmony-overlay-opacity",
+              String(Math.min(1, Math.max(0, parsed)))
+            );
+          }
+        }
+        const harmonyOverlayBlur = localStorage.getItem("harmonyOverlayBlur");
+        if (harmonyOverlayBlur !== null) {
+          const parsed = parseFloat(harmonyOverlayBlur);
+          if (!isNaN(parsed)) {
+            root.style.setProperty(
+              "--harmony-overlay-blur",
+              String(Math.min(20, Math.max(0, parsed))) + "px"
+            );
+          }
+        }
+        const harmonyOverlayCardOpacity = localStorage.getItem(
+          "harmonyOverlayCardOpacity"
+        );
+        if (harmonyOverlayCardOpacity !== null) {
+          const parsed = parseFloat(harmonyOverlayCardOpacity);
+          if (!isNaN(parsed)) {
+            root.style.setProperty(
+              "--harmony-card-opacity",
+              String(Math.min(1, Math.max(0, parsed)))
+            );
+          }
+        }
+      })();
+
+      // 初始化素简字体 - 优先 localStorage（调色板里选过、且仍在菜单里时），否则用菜单第一项（控制台字体页可管），首帧前挂到 html 上（仅素简下生效）
+      const pureFontStored = localStorage.getItem("pureFont");
+      const pureFontMenuList = Array.isArray(pureFontMenu) ? pureFontMenu : ["system"];
+      const pureFontResolved = pureFontMenuList.includes(pureFontStored)
+        ? pureFontStored
+        : pureFontMenuList[0];
+      if (pureFontResolved && pureFontResolved !== "system") {
+        document.documentElement.setAttribute("data-pure-font", pureFontResolved);
+      }
+
+      // 初始化期间禁用 content-panel/wrapper 过渡，避免加载时布局/变量变化产生内容移动动画；
+      // load 后移除（仅首次设置，swup 切页重跑脚本时不再重复）。布局已由 CSS 接管，无需 rAF 校正
+      if (!window.__fireflyLayoutTransitionGuard) {
+        window.__fireflyLayoutTransitionGuard = true;
+        document.documentElement.setAttribute("data-layout-init", "");
+        const removeLayoutInit = () =>
+          document.documentElement.removeAttribute("data-layout-init");
+        if (document.readyState === "complete") {
+          requestAnimationFrame(removeLayoutInit);
+        } else {
+          window.addEventListener("load", removeLayoutInit, { once: true });
+        }
+      }
+
+      // 初始化水波纹动画状态 - 在 html 元素上设置属性，CSS 会立即生效
+      (function applyWavesEnabled() {
+        const wavesEnabled = localStorage.getItem("wavesEnabled");
+        if (wavesEnabled !== null) {
+          document.documentElement.setAttribute("data-waves-enabled", wavesEnabled);
+        }
+      })();
+
+      // 初始化渐变过渡状态 - 在 html 元素上设置属性，CSS 会立即生效
+      (function applyGradientEnabled() {
+        const gradientEnabled = localStorage.getItem("gradientEnabled");
+        if (gradientEnabled !== null) {
+          document.documentElement.setAttribute("data-gradient-enabled", gradientEnabled);
+        }
+      })();
+
+      // 初始化横幅标题显示状态 - 在 html 元素上设置属性，CSS 会立即生效
+      (function applyBannerTitleEnabled() {
+        const bannerTitleEnabled = localStorage.getItem("bannerTitleEnabled");
+        if (bannerTitleEnabled !== null) {
+          document.documentElement.setAttribute("data-banner-title-enabled", bannerTitleEnabled);
+        }
+      })();
+    </script>
+    <!-- 形态 CSS 静态加载（2026-10-31 回滚运行时加载）：四套形态样式以真实
+         <link> 进 head、首帧绘制前全部就位。早先的拆分版靠 JS 运行时创建当前
+         形态的 stylesheet，其余空闲预载——文件虽在缓存里，样式落上身却晚于
+         首帧，任何形态下翻页/切换都会先闪一帧华彩。代价是每页多下其余三套
+         的字节（合计 br 约 15KB），换全程零闪烁。规则本体都带形态属性门控、
+         隐藏守卫在常加载主包里，全量加载与拆分前的大包行为一致。 -->
+    <link rel="stylesheet" href={pureModeCssUrl} />
+    <link rel="stylesheet" href={harmonyModeCssUrl} />
+    <link rel="stylesheet" href={brickModeCssUrl} />
+    <link rel="stylesheet" href={astralModeCssUrl} />
+    <link rel="stylesheet" href={paperModeCssUrl} />
+    <link rel="stylesheet" href={mingxinModeCssUrl} />
+    <link rel="stylesheet" href={mingxinDatalayerCssUrl} />
+    <script is:inline>
+      // 样式已静态就位：setting-utils 切换时调用的确保钩子直接放行（立即翻属性）
+      window.__ensureSiteModeCss = function () {
+        return Promise.resolve();
+      };
+    </script>
+    <script>
+      // 形态自愈 v2（2026-11-01 立，2026-11-02 补强）：站长真机多次遇到
+      // 「存着的形态半失效」——localStorage 说是某形态、页面却按别的形态
+      // 渲染（横幅带空白、皮肤不对版），切走再切回就好，且只犯在他常规
+      // Edge 档案里（无痕/Chrome 全好、清缓存无效，病灶在站点数据层）。
+      // v1 只在整页 load 后查一次 --mx-probe 探针，漏了两种情况：①软导航
+      // 切页后才坏（load 不再触发，v1 永远不查新页面）；②探针对版但版式
+      // 坏了（纸舟/明信横幅没退场、内容上方大片空白或整屏壁纸）。
+      // v2：检查抽成可重入函数，load 后查一次、swup:page:view 后再查一次；
+      // 除探针与 data-site-mode 外加两道版式/子状态核对——纸舟核
+      // data-paper-theme 与 localStorage 的子主题选择（setPaperTheme 两者
+      // 同写，正常永不分叉）；纸舟/明信核 #wallpaper-wrapper 计算显示必须
+      // 为 none（这两形态横幅恒退场，它露出来就是半失效）。任一对不上且
+      // 本页本会话未自愈过，就带新参数整页重载一次（防死循环）。
+      (() => {
+        const MODES = ["full", "pure", "harmony", "brick", "astral", "paper", "mingxin"];
+        const checkSiteModeHealth = () => {
+          try {
+            const stored = localStorage.getItem("siteMode");
+            const attr = document.documentElement.getAttribute("data-site-mode") || "full";
+            const intended = MODES.includes(stored) ? stored : attr;
+            let ok = attr === intended;
+            if (ok) {
+              const probe = getComputedStyle(document.body)
+                .getPropertyValue("--mx-probe")
+                .trim();
+              ok = probe === intended;
+            }
+            if (ok && intended === "paper") {
+              const paperThemeStored = localStorage.getItem("paperTheme");
+              if (["ink", "manual"].includes(paperThemeStored)) {
+                ok =
+                  document.documentElement.getAttribute("data-paper-theme") ===
+                  paperThemeStored;
+              }
+            }
+            if (ok && (intended === "paper" || intended === "mingxin")) {
+              const wrapper = document.getElementById("wallpaper-wrapper");
+              if (wrapper) {
+                ok = getComputedStyle(wrapper).display === "none";
+              }
+            }
+            const key = "mxHeal:" + location.pathname;
+            if (ok) {
+              sessionStorage.removeItem(key);
+              return;
+            }
+            if (sessionStorage.getItem(key)) return;
+            sessionStorage.setItem(key, "1");
+            const u = new URL(location.href);
+            u.searchParams.set("mxheal", Date.now().toString(36));
+            location.replace(u.toString());
+          } catch {
+            /* 自愈失败不打扰访客 */
+          }
+        };
+        window.addEventListener("load", () => {
+          setTimeout(checkSiteModeHealth, 400);
+        });
+        document.addEventListener("swup:page:view", () => {
+          setTimeout(checkSiteModeHealth, 400);
+        });
+      })();
+    </script>
+    <style
+      define:vars={{
+        configHue,
+        "page-width": `${siteConfig.pageWidth ?? PAGE_WIDTH}rem`,
+        "navbar-panel-blur": `${navbarPanelBlur}px`,
+        "banner-height-home": `${BANNER_HEIGHT_HOME}vh`,
+        "banner-height-non-home": `max(${BANNER_HEIGHT_NON_HOME}vh, ${BANNER_HEIGHT_NON_HOME_MIN}px)`,
+        "banner-height": `${BANNER_HEIGHT}vh`,
+      }}
+    ></style>
+    <!-- defines global css variables. This will be applied to <html> <body> and some other elements idk why -->
+
+    <slot name="head" />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={profileConfig.name}
+      href={`${Astro.site}rss.xml`}
+    />
+
+    <link
+      rel="alternate"
+      type="application/atom+xml"
+      title={profileConfig.name}
+      href={`${Astro.site}atom.xml`}
+    />
+
+    <!-- 明信图片槽轮换池（站长 2026-11-01 立规）：每槽「当前图 + 池 + 模式」
+         manual 用当前图（服务端直出 src，本脚本零介入）/ random 每次打开
+         页面从「当前+池」随机一张 / daily 按访客本地日期确定性轮换。
+         非 manual 的图服务端不写 src、只挂 data-mx-pick，本脚本在 head 里
+         先算好全部选图、再用 MutationObserver 在节点解析到的瞬间写 src，
+         保证首帧即定图、不闪不跳。统计卡底图与作者卡横幅同为 banner 键，
+         读同一份选图（共用一槽，不另开字段）。 -->
+    <script is:inline define:vars={{
+      mxPoolData: {
+        reveal: { cur: mingxinConfig.revealImage, pool: mingxinConfig.revealPool ?? [], mode: mingxinConfig.revealMode ?? "manual" },
+        mosaic: { cur: mingxinConfig.mosaicImage, pool: mingxinConfig.mosaicPool ?? [], mode: mingxinConfig.mosaicMode ?? "manual" },
+        banner: { cur: mingxinConfig.profileBanner ?? "", pool: mingxinConfig.profileBannerPool ?? [], mode: mingxinConfig.profileBannerMode ?? "manual" },
+        doll: { cur: mingxinConfig.dollImage, pool: mingxinConfig.dollPool ?? [], mode: mingxinConfig.dollMode ?? "manual" },
+        scenes: mingxinConfig.scenes.map((s) => ({ cur: s.image, pool: s.pool ?? [], mode: s.mode ?? "manual" })),
+        stands: mingxinConfig.standImages.map((src, i) => ({ cur: src, pool: (mingxinConfig.standPools ?? [])[i] ?? [], mode: (mingxinConfig.standModes ?? [])[i] ?? "manual" })),
+      },
+    }}>
+      (function () {
+        var D = mxPoolData;
+        if (!D) return;
+        var anyAuto = [D.reveal, D.mosaic, D.banner, D.doll]
+          .concat(D.scenes || [], D.stands || [])
+          .some(function (s) { return s && s.mode && s.mode !== "manual"; });
+        if (!anyAuto) return;
+        function cands(s) {
+          var out = [];
+          var all = [s.cur].concat(s.pool || []);
+          for (var i = 0; i < all.length; i++) {
+            var v = all[i];
+            if (v && out.indexOf(v) < 0) out.push(v);
+          }
+          return out;
+        }
+        function hashStr(str) {
+          var h = 5381;
+          for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+          return Math.abs(h);
+        }
+        function todayKey() {
+          var d = new Date();
+          return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+        }
+        function pick(s, salt) {
+          var c = cands(s);
+          if (!c.length) return "";
+          if (s.mode === "random" && c.length > 1)
+            return c[Math.floor(Math.random() * c.length)];
+          if (s.mode === "daily" && c.length > 1)
+            return c[hashStr(todayKey() + "|" + salt) % c.length];
+          return s.cur || c[0];
+        }
+        var picks = {};
+        function compute() {
+          picks.reveal = pick(D.reveal, "reveal");
+          picks.mosaic = pick(D.mosaic, "mosaic");
+          var bc = cands(D.banner);
+          picks.banner =
+            D.banner.mode !== "manual" && bc.length
+              ? pick(D.banner, "banner")
+              : D.banner.cur || picks.reveal;
+          picks.doll = pick(D.doll, "doll");
+          picks.scenes = (D.scenes || []).map(function (s, i) { return pick(s, "scene-" + i); });
+          picks.stands = (D.stands || []).map(function (s, i) { return pick(s, "stand-" + i); });
+          window.__MX_PICKS__ = picks;
+        }
+        function urlFor(key) {
+          if (key === "reveal" || key === "mosaic" || key === "banner" || key === "doll")
+            return picks[key] || "";
+          var m = /^(scene|stand)-(\d+)$/.exec(key);
+          if (m) return (m[1] === "scene" ? picks.scenes : picks.stands)[Number(m[2])] || "";
+          return "";
+        }
+        function applyEl(el) {
+          var u = urlFor(el.getAttribute("data-mx-pick") || "");
+          if (u && el.getAttribute("src") !== u) el.setAttribute("src", u);
+        }
+        function applyAll() {
+          var nodes = document.querySelectorAll("[data-mx-pick]");
+          for (var i = 0; i < nodes.length; i++) applyEl(nodes[i]);
+        }
+        compute();
+        var mo = new MutationObserver(function (muts) {
+          for (var i = 0; i < muts.length; i++) {
+            var added = muts[i].addedNodes;
+            for (var j = 0; j < added.length; j++) {
+              var n = added[j];
+              if (n.nodeType !== 1) continue;
+              if (n.hasAttribute && n.hasAttribute("data-mx-pick")) applyEl(n);
+              if (n.querySelectorAll) {
+                var inner = n.querySelectorAll("[data-mx-pick]");
+                for (var k = 0; k < inner.length; k++) applyEl(inner[k]);
+              }
+            }
+          }
+        });
+        mo.observe(document.documentElement, { childList: true, subtree: true });
+        document.addEventListener("DOMContentLoaded", applyAll);
+        // swup 软导航 = 新的一次「打开页面」：random 重挑、daily 按日稳定
+        document.addEventListener("swup:page:view", function () {
+          compute();
+          applyAll();
+        });
+        // 页内切到明信形态时 DOM 不新增节点，靠属性变化补一遍应用
+        new MutationObserver(function () { applyAll(); }).observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["data-site-mode"],
+        });
+      })();
+    </script>
+
+    <!-- Font Setup (Astro Font API) -->
+    <FontSetup />
+  </head>
+  <body
+    class="min-h-screen"
+    class:list={[
+      {
+        "is-home": isHomePageCheck,
+        "sticky-navbar": navbarMode === "fixed",
+        "dynamic-navbar": navbarMode === "dynamic",
+      },
+    ]}
+  >
+    {/* 开屏层必须是 body 的第一个节点：配合 <head> 里同步打的 splash-eligible，
+        首帧就是这块夜色遮罩，正文不会抢先露出来。src 由紧随其后的脚本按需挂上，
+        本会话已看过开屏时 iframe 保持 display:none，不产生额外请求。 */}
+    {siteConfig.splashEnabled !== false && isHomePageCheck && (
+      <>
+        <iframe
+          id="welcomeSplashFrame"
+          title="开屏页"
+          aria-hidden="true"
+          frameborder="0"></iframe>
+        <script is:inline src="/welcome-splash/splash-entry.js"></script>
+      </>
+    )}
+    <!-- 首帧前按运行时壁纸模式翻转卡片透明类（布局已由 data-wallpaper-mode 属性规则接管） -->
+    <script is:inline>
+      (function () {
+        const wm = document.documentElement.getAttribute("data-wallpaper-mode");
+        if (!wm) return;
+        document.body.classList.toggle(
+          "wallpaper-transparent",
+          wm === "overlay" ||
+            (wm === "fullscreen" &&
+              document.documentElement.getAttribute("data-fullscreen-layout") === "hero"),
+        );
+      })();
+    </script>
+
+    <div id="progress-bar"></div>
+
+    <!-- 明信背景纹理层（常驻壳层）：仅 html[data-site-mode="mingxin"] 时由
+         mingxin-mode.css 点亮，其余形态下 display:none（main.css 守卫） -->
+    <div id="mingxin-texture-canvas" aria-hidden="true"></div>
+
+    {/* 开屏 onload 与揭幕逻辑在 body 顶部的 splash-entry.js 里，渲染顺序见该处注释 */}
+
+    <!-- 谐彩背景纹理层：固定全屏、负层级、只在谐彩作用域内被 harmony-mode.css 赋形（图案/透明度），其他形态下是无样式空层 -->
+    <div id="harmony-texture-layer" aria-hidden="true"></div>
+
+    <!-- 顽彩圆点网层：固定全屏、负层级、只在顽彩作用域内被 brick-mode.css 赋形（24px 圆点网），其他形态下是无样式空层 -->
+    <div id="brick-dot-layer" aria-hidden="true"></div>
+
+    <!-- 璨夜星空层：程序化星点 canvas，只在璨夜作用域内由 AstralStarfield 组件驱动（星空开关可关），其他形态下不渲染 -->
+    <AstralStarfield />
+
+    <!-- 璨夜·星尘面纱层：固定全屏、只在璨夜星尘子主题作用域内被 astral-mode.css 赋形（半透色层压软壁纸），其他形态/子主题下是无样式空层 -->
+    <div id="astral-veil-layer" aria-hidden="true"></div>
+
+    {/* 卡片样式：根据 localStorage 覆盖默认配置 */}
+    <script is:inline define:vars={{
+      defaultBorder: siteConfig.card?.border ?? false,
+      defaultFollowTheme: siteConfig.card?.followTheme ?? false,
+    }}>
+      (function() {
+        var stored = localStorage.getItem("cardBorderEnabled");
+        var border = stored !== null ? stored === "true" : defaultBorder;
+        if (border) document.documentElement.classList.add("enable-card-border");
+        else document.documentElement.classList.remove("enable-card-border");
+
+        stored = localStorage.getItem("cardFollowThemeEnabled");
+        var follow = stored !== null ? stored === "true" : defaultFollowTheme;
+        if (follow) document.body.classList.add("card-follow-theme-hue");
+        else document.body.classList.remove("card-follow-theme-hue");
+      })();
+    </script>
+
+    <!-- 页面顶部渐变高光效果 - 只在full和semifull模式下显示 -->
+    {shouldShowTopHighlight && <div class="top-gradient-highlight" />}
+    <ConfigCarrier />
+    <MusicManager />
+    <slot />
+
+    <!-- 播放器视图脚本：必须在 <slot /> 之后（解析到它时所有 widget 的 DOM 要已存在），
+         且在 MusicManager 之后（swup 重跑按文档顺序，window.__fireflyMusic 得先就位） -->
+    {(musicPlayerConfig.showInNavbar || musicPlayerConfig.showInSidebar !== false) && (
+      <MusicPlayerView />
+    )}
+
+
+    <!-- Sakura Effect -->
+    <SakuraEffect />
+
+    <!-- Particle Effects（雪花 / 萤火虫） -->
+    <ParticleEffects />
+
+    <!-- 碎碎念弹幕（第二批，常驻层） -->
+    <DanmakuLayer />
+
+    <!-- 全局浮动播放器 + 肥鱼（第三批，常驻层；总闸在 featuresConfig） -->
+    {featuresConfig.floatingPlayer && <FloatingPlayer />}
+    {featuresConfig.fish && <FloatingFish />}
+
+    <!-- 明信音乐播放器（二期，常驻层；只在明信现身、切形态不断播） -->
+    <MingxinMusicPlayer />
+
+    <!-- 明信移动端底部 Dock（仅明信 + ≤768px 点亮；移动端播放器交接给它） -->
+    <MingxinMobileDock />
+
+    <!-- Water Waves Effect -->
+    <WavesEffect />
+
+    <!-- Fancybox Manager -->
+    <FancyboxManager />
+
+    <!-- Tab 代码块交互 -->
+    <CodeGroupManager />
+
+    <!-- GitHub 卡片客户端实时补全（forks/stars） -->
+    <GithubCardManager />
+  </body>
+</html>
+
+
+<script>
+  import { initLayout } from "@/utils/layout-init";
+  initLayout();
+</script>

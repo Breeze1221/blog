@@ -1,0 +1,13 @@
+---
+// 站点统计页入口：按 siteConfig.analyticsStyle 渲染两套实现之一。
+// classic = 现行手搓版（默认）；azuma = Aemeath 同款版（移植自 HY 公开仓库，Waline 原版）。
+// 两套实现都在 src/components/pages/ 下，这里只做开关分发；azuma 版另有预览页 /analytics-azuma/。
+import AnalyticsAzuma from "@/components/pages/AnalyticsAzuma.astro";
+import AnalyticsAzumaClean from "@/components/pages/AnalyticsAzumaClean.astro";
+import AnalyticsClassic from "@/components/pages/AnalyticsClassic.astro";
+import { siteConfig } from "@/config";
+
+const style = siteConfig.analyticsStyle ?? "classic";
+---
+
+{style === "azuma" ? <AnalyticsAzuma /> : style === "azuma-clean" ? <AnalyticsAzumaClean /> : <AnalyticsClassic />}

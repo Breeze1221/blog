@@ -1,0 +1,708 @@
+import type { BooknavGroup, BooknavPageConfig } from "../types/booknavConfig";
+
+// 书签导航页面配置
+export const booknavPageConfig: BooknavPageConfig = {
+	// 页面标题，如果留空则使用 i18n 中的翻译
+	title: "",
+
+	// 页面描述文本，如果留空则使用 i18n 中的翻译
+	description: "",
+
+	// favicon 自动获取配置
+	favicon: {
+		// 书签未填写 icon 时，是否自动获取目标站点的 favicon 图标
+		enabled: true,
+
+		// favicon 接口地址，{domain} 为占位符，会被替换成目标站点域名
+		// 更换接口只需保证地址里含有 {domain}，例如：
+		//   https://a.favicon.im/{domain}
+		//   https://favicon.im/{domain}
+		api: "https://a.favicon.im/{domain}",
+	},
+};
+
+// 书签导航配置
+// 每个数组项是一个分类组，分类组内的 items 是该分类下的书签
+export const booknavConfig: BooknavGroup[] = [
+	{
+		id: "dev",
+		name: "开发",
+		icon: "material-symbols:code-rounded",
+		desc: "写代码时离不开的站点",
+		weight: 100,
+		items: [
+			{
+				title: "GitHub",
+				url: "https://github.com",
+				desc: "全球最大的代码托管平台",
+				// icon 字段可以使用 astro-icon 图标库的图标名称
+				// 也可以使用图片 URL 和本地图片路径
+				// 不填则会通过接口自动获取目标站点的 favicon 图标（需要在上面配置）
+				icon: "fa7-brands:github",
+				weight: 10,
+			},
+			{
+				title: "MDN Web Docs",
+				url: "https://developer.mozilla.org",
+				desc: "最权威的 Web 技术文档",
+				weight: 9,
+			},
+			{
+				title: "Astro",
+				url: "https://astro.build",
+				desc: "内容驱动型网站的 Web 框架",
+				weight: 8,
+			},
+			{
+				title: "Svelte",
+				url: "https://svelte.dev",
+				desc: "把组件编译成高效原生 JS 的框架",
+				weight: 7,
+			},
+			{
+				title: "Tailwind CSS",
+				url: "https://tailwindcss.com",
+				desc: "一个功能强大且灵活的 CSS 框架",
+				weight: 6,
+			},
+			{
+				title: "pdai.tech",
+				url: "https://pdai.tech/",
+				desc: "Java 全栈知识体系",
+				weight: 5,
+			},
+			{
+				title: "JavaGuide",
+				url: "https://javaguide.cn/",
+				desc: "Java 学习与面试指南",
+				weight: 4,
+			},
+			{
+				title: "LeetCode",
+				url: "https://leetcode.cn/",
+				desc: "技术成长与算法练习平台",
+				weight: 3,
+			},
+			{
+				title: "牛客网",
+				url: "https://www.nowcoder.com/",
+				desc: "IT 求职备考与技术学习平台",
+				weight: 2,
+			},
+			{
+				title: "NapCat",
+				url: "https://napneko.github.io/",
+				desc: "基于 NTQQ 的 QQ 机器人框架",
+				weight: 1,
+			},
+			{
+				title: "AstrBot",
+				url: "https://astrbot.app/",
+				desc: "多平台聊天机器人框架",
+				weight: 1,
+			},
+			{
+				title: "NoneBot",
+				url: "https://nonebot.dev/docs/",
+				desc: "Python 异步机器人框架",
+				weight: 1,
+			},
+			{
+				title: "LLBot",
+				url: "https://github.com/LLOneBot/LuckyLilliaBot",
+				desc: "基于 NTQQ 的轻量 QQ 机器人框架",
+				icon: "fa7-brands:github",
+				weight: 1,
+			},
+			{
+				title: "Mai-bot",
+				url: "https://docs.mai-mai.org/",
+				desc: "MaiMai 音乐游戏相关机器人",
+				weight: 1,
+			},
+		],
+	},
+	{
+		id: "opensource",
+		name: "项目",
+		icon: "material-symbols:code-rounded",
+		desc: "好用的开源项目",
+		weight: 90,
+		items: [
+			{
+				title: "Firefly",
+				url: "https://github.com/CuteLeaf/Firefly",
+				desc: "清晰美观的 Astro 个人博客主题模板",
+				icon: "/favicon/firefly-32.png",
+				weight: 10,
+			},
+		],
+	},
+	{
+		id: "design",
+		name: "设计",
+		icon: "material-symbols:palette-outline-rounded",
+		desc: "配色、图标与灵感来源",
+		weight: 90,
+		items: [
+			{
+				title: "Iconify",
+				url: "https://icon-sets.iconify.design",
+				desc: "海量开源图标集合搜索",
+				weight: 10,
+			},
+			{
+				title: "iconfont",
+				url: "https://www.iconfont.cn",
+				desc: "阿里巴巴矢量图标库",
+				weight: 9,
+			},
+			{
+				title: "Figma",
+				url: "https://www.figma.com/",
+				desc: "在线 UI/UX 设计协作工具",
+				weight: 8,
+			},
+			{
+				title: "Awwwards",
+				url: "https://www.awwwards.com/",
+				desc: "全球优秀网页设计作品评选",
+				weight: 7,
+			},
+			{
+				title: "One Page Love",
+				url: "https://onepagelove.com/",
+				desc: "单页网站设计灵感库",
+				weight: 6,
+			},
+			{
+				title: "Mobbin",
+				url: "https://mobbin.com/",
+				desc: "移动端 UI 设计参考库",
+				weight: 5,
+			},
+			{
+				title: "shadcn/ui",
+				url: "https://ui.shadcn.com/",
+				desc: "基于 Radix UI 的 React 组件集合",
+				weight: 4,
+			},
+			{
+				title: "Aceternity UI",
+				url: "https://ui.aceternity.com/",
+				desc: "现代化 React 动画组件库",
+				weight: 3,
+			},
+			{
+				title: "Magic UI",
+				url: "https://magicui.design/",
+				desc: "精美动画组件库",
+				weight: 2,
+			},
+			{
+				title: "Uiverse",
+				url: "https://uiverse.io/",
+				desc: "社区驱动的开源 UI 元素库",
+				weight: 1,
+			},
+			{
+				title: "React Bits",
+				url: "https://www.reactbits.dev/",
+				desc: "React 组件与 Hook 精选集合",
+				weight: 1,
+			},
+			{
+				title: "CodePen",
+				url: "https://codepen.io/",
+				desc: "前端在线演示与分享平台",
+				weight: 1,
+			},
+			{
+				title: "Sketchfab",
+				url: "https://sketchfab.com/",
+				desc: "3D 模型展示与分享平台",
+				weight: 1,
+			},
+		],
+	},
+	{
+		id: "tools",
+		name: "工具",
+		icon: "material-symbols:build-outline-rounded",
+		desc: "顺手的在线小工具",
+		weight: 80,
+		items: [
+			{
+				title: "TinyPNG",
+				url: "https://tinypng.com",
+				desc: "在线压缩 PNG / JPEG 图片",
+				weight: 10,
+			},
+			{
+				title: "Squoosh",
+				url: "https://squoosh.app",
+				desc: "Google 出品的图片压缩与格式转换",
+				weight: 9,
+			},
+			{
+				title: "Carbon",
+				url: "https://carbon.now.sh",
+				desc: "把代码片段生成漂亮的图片",
+				weight: 8,
+			},
+			{
+				title: "硬核指南",
+				url: "https://yinghezhinan.com/",
+				desc: "硬核技术指南站点",
+				icon: "material-symbols:menu-book-outline",
+				weight: 7,
+			},
+			{
+				title: "phototool.cn",
+				url: "https://phototool.cn/",
+				desc: "在线图片处理工具箱",
+				weight: 6,
+			},
+			{
+				title: "SauceNAO",
+				url: "https://saucenao.com/",
+				desc: "以图搜图引擎",
+				weight: 5,
+			},
+			{
+				title: "抠抠图",
+				url: "https://www.koukoutu.com/",
+				desc: "免费 AI 在线抠图",
+				weight: 4,
+			},
+			{
+				title: "StarDots",
+				url: "https://dashboard.stardots.io/?lang=zh",
+				desc: "图片托管与 CDN 加速",
+				weight: 3,
+			},
+			{
+				title: "AdWorker",
+				url: "https://adworker.ai/zh/tools/gif-background-remover/",
+				desc: "在线 GIF 背景移除",
+				weight: 2,
+			},
+			{
+				title: "PatorJK",
+				url: "https://patorjk.com/",
+				desc: "ASCII 艺术字生成器",
+				weight: 1,
+			},
+			{
+				title: "中科大测速",
+				url: "https://test.ustc.edu.cn/",
+				desc: "中科大网络测速工具",
+				weight: 1,
+			},
+			{
+				title: "draw.io",
+				url: "https://www.drawio.com/",
+				desc: "在线流程图绘制",
+				weight: 1,
+			},
+			{
+				title: "UUID 生成器",
+				url: "https://www.lddgo.net/string/uuid",
+				desc: "在线 UUID 生成",
+				weight: 1,
+			},
+			{
+				title: "Speedtest",
+				url: "https://www.speedtest.net/",
+				desc: "网络测速",
+				weight: 1,
+			},
+			{
+				title: "秋名山工具箱",
+				url: "https://ip.qmsdh.com/",
+				desc: "网络工具箱",
+				weight: 1,
+			},
+			{
+				title: "wikiHow",
+				url: "https://zh.wikihow.com/",
+				desc: "万事指南",
+				weight: 1,
+			},
+			{
+				title: "dispoemail",
+				url: "https://dispoemail.org/",
+				desc: "临时邮箱",
+				weight: 1,
+			},
+			{
+				title: "教育优惠导航",
+				url: "https://nav.edumails.cn/",
+				desc: "学生教育优惠项目导航",
+				weight: 1,
+			},
+			{
+				title: "小小API",
+				url: "https://xxapi.cn/",
+				desc: "免费 API 数据接口",
+				weight: 1,
+			},
+			{
+				title: "聚合数据",
+				url: "https://www.juhe.cn/",
+				desc: "短信、物流等多种 API",
+				weight: 1,
+			},
+			{
+				title: "高德地图 API",
+				url: "https://lbs.amap.com/",
+				desc: "地图、定位、导航服务",
+				weight: 1,
+			},
+			{
+				title: "有道翻译 API",
+				url: "https://ai.youdao.com/",
+				desc: "多语言文本互译",
+				weight: 1,
+			},
+			{
+				title: "Tavily",
+				url: "https://app.tavily.com/home",
+				desc: "为 AI 优化的搜索 API",
+				weight: 1,
+			},
+			{
+				title: "Outlook",
+				url: "https://outlook.live.com/mail/",
+				desc: "微软邮箱",
+				weight: 1,
+			},
+			{
+				title: "Proton Mail",
+				url: "https://mail.proton.me/",
+				desc: "加密邮箱",
+				weight: 1,
+			},
+			{
+				title: "Zoho Mail",
+				url: "https://mail.zoho.com/",
+				desc: "Zoho 邮箱",
+				weight: 1,
+			},
+			{
+				title: "东南大学邮箱",
+				url: "https://mail.seu.edu.cn/",
+				desc: "学校邮箱",
+				weight: 1,
+			},
+			{
+				title: "OquMail",
+				url: "https://app.oqumail.com/mail/inbox",
+				desc: "商务邮箱",
+				weight: 1,
+			},
+			{
+				title: "111完美邮箱",
+				url: "https://mail.111.com/",
+				desc: "完美邮箱",
+				weight: 1,
+			},
+			{
+				title: "88完美邮箱",
+				url: "https://mail.88.com/",
+				desc: "完美邮箱",
+				weight: 1,
+			},
+			{
+				title: "Smailr",
+				url: "https://smailr.com/",
+				desc: "邮箱服务",
+				weight: 1,
+			},
+			{
+				title: "NekoMail",
+				url: "https://webmail.neko.edu.pl/mail.php",
+				desc: "教育邮箱",
+				weight: 1,
+			},
+			{
+				title: "QQ 邮箱",
+				url: "https://mail.qq.com/",
+				desc: "腾讯 QQ 邮箱",
+				weight: 1,
+			},
+			{
+				title: "网易 163 邮箱",
+				url: "https://mail.163.com/",
+				desc: "网易邮箱",
+				weight: 1,
+			},
+			{
+				title: "网易 126 邮箱",
+				url: "https://mail.126.com/",
+				desc: "网易邮箱",
+				weight: 1,
+			},
+		],
+	},
+	{
+		id: "forums",
+		name: "论坛",
+		icon: "material-symbols:forum-outline-rounded",
+		desc: "常逛的技术交流社区",
+		weight: 75,
+		items: [
+			{
+				title: "Linux Do",
+				url: "https://linux.do/",
+				desc: "高质量技术交流社区",
+				icon: "fa7-brands:linux",
+				weight: 10,
+			},
+			{
+				title: "NodeSeek",
+				url: "https://www.nodeseek.com/",
+				desc: "服务器优惠信息与交流",
+				icon: "material-symbols:dns-outline",
+				weight: 9,
+			},
+			{
+				title: "NodeLoc",
+				url: "https://www.nodeloc.com/",
+				desc: "VPS 测评与交流社区",
+				icon: "material-symbols:public",
+				weight: 8,
+			},
+			{
+				title: "奶昔论坛",
+				url: "https://forum.naixi.net/index.php",
+				desc: "奶昔综合交流论坛",
+				icon: "material-symbols:chat-bubble-outline",
+				weight: 7,
+			},
+			{
+				title: "HelloGitHub",
+				url: "https://hellogithub.com/",
+				desc: "有趣的开源社区",
+				weight: 6,
+			},
+			{
+				title: "Reddit",
+				url: "https://www.reddit.com/",
+				desc: "全球社区讨论平台",
+				weight: 5,
+			},
+		],
+	},
+	{
+		id: "resources",
+		name: "资源",
+		icon: "material-symbols:auto-stories-outline-rounded",
+		desc: "文档、教程与阅读",
+		weight: 70,
+		items: [
+			{
+				title: "Firefly Docs",
+				url: "https://docs-firefly.cuteleaf.cn",
+				desc: "Firefly 主题模板文档",
+				icon: "https://docs-firefly.cuteleaf.cn/logo.png",
+				weight: 10,
+			},
+			{
+				title: "夏夜流萤",
+				url: "https://blog.cuteleaf.cn",
+				desc: "飞萤之火自无梦的长夜亮起",
+				weight: 9,
+			},
+			{
+				title: "维基百科",
+				url: "https://en.wikipedia.org/wiki/Main_Page",
+				desc: "自由的百科全书",
+				weight: 8,
+			},
+			{
+				title: "Pinterest",
+				url: "https://www.pinterest.com/",
+				desc: "图片灵感收集",
+				weight: 7,
+			},
+			{
+				title: "Bangumi",
+				url: "https://bgm.tv/anime",
+				desc: "番组计划动画数据库",
+				weight: 6,
+			},
+			{
+				title: "AGE 动漫",
+				url: "https://www.agedm.io/update",
+				desc: "动漫资源聚合",
+				weight: 5,
+			},
+			{
+				title: "ManhwaTop",
+				url: "https://manhwatop.com/",
+				desc: "韩漫与漫画阅读",
+				weight: 4,
+			},
+			{
+				title: "奈飞工厂",
+				url: "https://yanetflix.com/",
+				desc: "免费 Netflix 影剧",
+				weight: 3,
+			},
+			{
+				title: "247看",
+				url: "https://247kan.com/",
+				desc: "免费在线影视",
+				weight: 2,
+			},
+			{
+				title: "低调影视",
+				url: "https://ddys.app/",
+				desc: "超清在线视频",
+				weight: 1,
+			},
+			{
+				title: "555电影",
+				url: "https://wu5cn.com/",
+				desc: "电影在线观看",
+				weight: 1,
+			},
+			{
+				title: "Nyaa",
+				url: "https://nyaa.si/",
+				desc: "动漫资源下载",
+				weight: 1,
+			},
+			{
+				title: "FMHY",
+				url: "https://fmhy.net/",
+				desc: "免费媒体资源索引",
+				weight: 1,
+			},
+		],
+	},
+	{
+		id: "ai",
+		name: "AI",
+		icon: "material-symbols:bolt",
+		desc: "AI 助手、模型与资源",
+		weight: 65,
+		items: [
+			{
+				title: "ChatGPT",
+				url: "https://chatgpt.com/",
+				desc: "OpenAI 的对话式 AI",
+				weight: 10,
+			},
+			{
+				title: "Claude",
+				url: "https://claude.ai/",
+				desc: "Anthropic 的 AI 助手",
+				weight: 9,
+			},
+			{
+				title: "Gemini",
+				url: "https://gemini.google.com/",
+				desc: "Google 的多模态 AI",
+				weight: 8,
+			},
+			{
+				title: "豆包",
+				url: "https://www.doubao.com/",
+				desc: "字节跳动的 AI 助手",
+				weight: 7,
+			},
+			{
+				title: "Grok",
+				url: "https://grok.com/",
+				desc: "xAI 的 AI 助手",
+				weight: 6,
+			},
+			{
+				title: "Muse",
+				url: "https://muse.ai/",
+				desc: "Meta 的 AI 助手",
+				weight: 5,
+			},
+			{
+				title: "Perplexity",
+				url: "https://www.perplexity.ai/",
+				desc: "AI 搜索问答",
+				weight: 4,
+			},
+			{
+				title: "通义万相",
+				url: "https://tongyi.aliyun.com/wanxiang/",
+				desc: "阿里通义的图像生成",
+				weight: 3,
+			},
+			{
+				title: "问小白",
+				url: "https://www.wenxiaobai.com/",
+				desc: "AI 对话与图像生成",
+				weight: 2,
+			},
+			{
+				title: "Hugging Face",
+				url: "https://huggingface.co/",
+				desc: "AI 模型与数据集社区",
+				weight: 1,
+			},
+			{
+				title: "ModelScope",
+				url: "https://www.modelscope.cn/",
+				desc: "阿里达摩院开源模型社区",
+				weight: 1,
+			},
+			{
+				title: "Ollama",
+				url: "https://ollama.com/",
+				desc: "本地运行大语言模型",
+				weight: 1,
+			},
+			{
+				title: "Any Router",
+				url: "https://anyrouter.top/",
+				desc: "AI 模型 API 路由",
+				weight: 1,
+			},
+			{
+				title: "Artificial Analysis",
+				url: "https://artificialanalysis.ai/",
+				desc: "AI 模型能力对比分析",
+				weight: 1,
+			},
+			{
+				title: "AI Arena",
+				url: "https://arena.ai/leaderboard",
+				desc: "AI 模型竞技排行榜",
+				weight: 1,
+			},
+			{
+				title: "PromptPilot",
+				url: "https://promptpilot.volcengine.com/",
+				desc: "火山引擎 Prompt 优化工具",
+				weight: 1,
+			},
+			{
+				title: "Skills Marketplace",
+				url: "https://skillsmp.com/",
+				desc: "AI 技能市场",
+				weight: 1,
+			},
+			{
+				title: "ACGN AI 资源站",
+				url: "https://res.acgnai.top/",
+				desc: "ACGN 方向 AI 资源聚合",
+				weight: 1,
+			},
+			{
+				title: "鱼皮 AI 知识库",
+				url: "https://ai.codefather.cn/",
+				desc: "鱼皮的 AI 知识库",
+				weight: 1,
+			},
+		],
+	},
+];

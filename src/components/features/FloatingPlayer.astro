@@ -1,0 +1,607 @@
+---
+// 全局浮动播放器（第三批）：常驻层（挂 Layout 的 Swup 容器外，跨页续播）。
+// 只做壳 + 整单镜像：歌单从 /api/music/playlist 拉（平台公开歌单接口），
+// 点播才调 /api/music/resolve 取外部直链，博客不存任何音频。
+// 歌单配置在 musicPlayerConfig.floatingPlayer（每平台一条，id 空不显示）。
+import { musicPlayerConfig } from "@/config/musicConfig";
+
+const fp = musicPlayerConfig.floatingPlayer;
+const enabled = !!fp?.enabled;
+const playlists = (fp?.playlists || []).filter((p) => p.id);
+const quality = fp?.quality || "320k";
+---
+
+{
+	enabled && playlists.length > 0 && (
+		<div id="floating-player" hidden>
+			<div class="fp-panel" data-fp-panel hidden>
+				<div class="fp-tabs" role="tablist">
+					{playlists.map((p, i) => (
+						<button
+							type="button"
+							class:list={["fp-tab", { "fp-tab--active": i === 0 }]}
+							data-fp-tab={p.platform}
+							role="tab"
+						>
+							{p.label}
+						</button>
+					))}
+					<span class="fp-status" data-fp-status />
+				</div>
+				<ul class="fp-list" data-fp-list>
+					<li class="fp-hint">点一首开始听吧</li>
+				</ul>
+			</div>
+			<div class="fp-bar">
+				<img class="fp-cover" data-fp-cover alt="" hidden />
+				<div class="fp-cover fp-cover--empty" data-fp-cover-empty>♪</div>
+				<div class="fp-meta">
+					<span class="fp-title" data-fp-title>浮动播放器</span>
+					<span class="fp-artist" data-fp-artist>歌单已就绪</span>
+				</div>
+				<button type="button" class="fp-btn" data-fp-prev aria-label="上一首">⏮</button>
+				<button type="button" class="fp-btn fp-btn--main" data-fp-toggle aria-label="播放/暂停">▶</button>
+				<button type="button" class="fp-btn" data-fp-next aria-label="下一首">⏭</button>
+				<button type="button" class="fp-btn" data-fp-expand aria-label="歌单">☰</button>
+				<button type="button" class="fp-btn" data-fp-close aria-label="关闭">✕</button>
+			</div>
+			<button type="button" class="fp-ball" data-fp-ball hidden aria-label="展开播放器">
+				<svg class="fp-ring" viewBox="0 0 56 56" aria-hidden="true">
+					<circle class="fp-ring-bg" cx="28" cy="28" r="25" />
+					<circle class="fp-ring-fg" data-fp-ring cx="28" cy="28" r="25" />
+				</svg>
+				<img class="fp-ball-cover" data-fp-ball-cover alt="" hidden />
+				<span class="fp-ball-glyph" data-fp-ball-glyph>♪</span>
+				<span class="fp-ball-state" data-fp-ball-state>▶</span>
+			</button>
+			<audio data-fp-audio preload="none" />
+			<script type="application/json" data-fp-config set:html={JSON.stringify({ playlists, quality })} />
+		</div>
+	)
+}
+
+<style>
+	#floating-player {
+		position: fixed;
+		left: 1rem;
+		bottom: 1rem;
+		z-index: 80;
+		width: min(21rem, calc(100vw - 2rem));
+		color: #1f2430;
+	}
+	:global(html.dark) #floating-player {
+		color: #e9edf5;
+	}
+	.fp-panel {
+		/* 绝对定位挂在播放条上方：永远向上展开。曾用流内排布——默认贴底时
+		   靠容器底锚定往上长没问题，但拖动后容器改顶锚定，面板就往下展开
+		   还把播放条顶下去（站长 2026-10-31 点名），故改出流。 */
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: calc(100% + 0.5rem);
+		border-radius: 1rem;
+		padding: 0.6rem;
+		background: var(--card-bg, rgb(255 255 255 / 0.92));
+		box-shadow: 0 12px 32px rgb(0 0 0 / 0.22);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+	}
+	.fp-tabs {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		flex-wrap: wrap;
+		margin-bottom: 0.45rem;
+	}
+	.fp-tab {
+		font-size: 0.75rem;
+		font-weight: 700;
+		padding: 0.22rem 0.6rem;
+		border-radius: 999px;
+		background: rgb(128 128 128 / 0.14);
+	}
+	.fp-tab--active {
+		background: var(--primary);
+		color: white;
+	}
+	.fp-status {
+		margin-left: auto;
+		font-size: 0.72rem;
+		opacity: 0.6;
+	}
+	.fp-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		max-height: 15rem;
+		overflow-y: auto;
+	}
+	:global(.fp-track) {
+		display: flex;
+		gap: 0.5rem;
+		align-items: baseline;
+		width: 100%;
+		text-align: left;
+		padding: 0.38rem 0.45rem;
+		border-radius: 0.5rem;
+		font-size: 0.83rem;
+	}
+	:global(.fp-track:hover) {
+		background: rgb(128 128 128 / 0.12);
+	}
+	:global(.fp-track--active) {
+		color: var(--primary);
+		font-weight: 700;
+	}
+	:global(.fp-track--failed) {
+		opacity: 0.45;
+	}
+	:global(.fp-track-name) {
+		flex: 1;
+		min-width: 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	:global(.fp-track-artist) {
+		flex: none;
+		font-size: 0.72rem;
+		opacity: 0.6;
+		max-width: 7rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	:global(.fp-hint) {
+		padding: 0.5rem 0.45rem;
+		font-size: 0.8rem;
+		opacity: 0.6;
+	}
+	.fp-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		border-radius: 999px;
+		padding: 0.4rem 0.55rem;
+		background: var(--card-bg, rgb(255 255 255 / 0.92));
+		box-shadow: 0 12px 32px rgb(0 0 0 / 0.22);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+	}
+	.fp-cover {
+		width: 2.3rem;
+		height: 2.3rem;
+		border-radius: 999px;
+		object-fit: cover;
+		flex: none;
+	}
+	.fp-cover--empty {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgb(128 128 128 / 0.16);
+		font-size: 1rem;
+	}
+	.fp-cover--spin {
+		animation: fp-spin 9s linear infinite;
+	}
+	@keyframes fp-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	.fp-meta {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		line-height: 1.25;
+	}
+	.fp-title {
+		font-size: 0.83rem;
+		font-weight: 700;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.fp-artist {
+		font-size: 0.7rem;
+		opacity: 0.6;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.fp-btn {
+		flex: none;
+		width: 1.9rem;
+		height: 1.9rem;
+		border-radius: 999px;
+		font-size: 0.8rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.fp-btn:hover {
+		background: rgb(128 128 128 / 0.14);
+	}
+	.fp-btn--main {
+		background: var(--primary);
+		color: white;
+		width: 2.15rem;
+		height: 2.15rem;
+	}
+	/* 缩球形态（2026-10-31 整改）：圆环 = 歌曲进度 */
+	#floating-player.fp--ball {
+		width: auto;
+	}
+	.fp-ball {
+		position: relative;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: 999px;
+		background: var(--card-bg, rgb(255 255 255 / 0.92));
+		box-shadow: 0 12px 32px rgb(0 0 0 / 0.22);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+		cursor: grab;
+		touch-action: none;
+		padding: 0;
+	}
+	.fp-ball:active {
+		cursor: grabbing;
+	}
+	.fp-ring {
+		position: absolute;
+		inset: 0;
+		transform: rotate(-90deg);
+		pointer-events: none;
+	}
+	.fp-ring circle {
+		fill: none;
+		stroke-width: 3;
+	}
+	.fp-ring-bg {
+		stroke: rgb(128 128 128 / 0.25);
+	}
+	.fp-ring-fg {
+		stroke: var(--primary);
+		stroke-linecap: round;
+	}
+	.fp-ball-cover {
+		position: absolute;
+		inset: 5px;
+		width: calc(100% - 10px);
+		height: calc(100% - 10px);
+		border-radius: 999px;
+		object-fit: cover;
+		pointer-events: none;
+	}
+	.fp-ball-glyph {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1.15rem;
+		pointer-events: none;
+	}
+	.fp-ball-state {
+		position: absolute;
+		right: -2px;
+		bottom: -2px;
+		width: 1.15rem;
+		height: 1.15rem;
+		border-radius: 999px;
+		background: var(--primary);
+		color: white;
+		font-size: 0.55rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		pointer-events: none;
+	}
+	.fp-bar {
+		touch-action: none;
+	}
+</style>
+
+<script>
+	(() => {
+		const root = document.getElementById("floating-player");
+		if (!root) return;
+		if (sessionStorage.getItem("fpClosed") === "1") return;
+		root.hidden = false;
+
+		const cfgEl = root.querySelector("[data-fp-config]");
+		let cfg = { playlists: [] as { platform: string; id: string; label: string }[], quality: "320k" };
+		try {
+			cfg = JSON.parse(cfgEl?.textContent || "{}");
+		} catch {}
+		if (!cfg.playlists?.length) return;
+
+		const $ = (s: string) => root.querySelector(s) as HTMLElement;
+		const audio = root.querySelector("[data-fp-audio]") as HTMLAudioElement;
+
+		// 形态门（站长 2026-10-31 定版）：浮动播放器只在璨夜出现；
+		// 切走形态时藏起并暂停，切回璨夜再现身。总闸另在 featuresConfig。
+		const applyModeGate = () => {
+			const ok =
+				document.documentElement.getAttribute("data-site-mode") === "astral";
+			root.hidden = !ok;
+			if (!ok && !audio.paused) audio.pause();
+		};
+		applyModeGate();
+		window.addEventListener("siteModeChange", applyModeGate);
+		const panel = $("[data-fp-panel]");
+		const listEl = $("[data-fp-list]");
+		const statusEl = $("[data-fp-status]");
+		const titleEl = $("[data-fp-title]");
+		const artistEl = $("[data-fp-artist]");
+		const coverEl = root.querySelector("[data-fp-cover]") as HTMLImageElement;
+		const coverEmpty = $("[data-fp-cover-empty]");
+		const toggleBtn = $("[data-fp-toggle]");
+
+		interface Track { id: string; name: string; artist: string; pic: string }
+		const cache = new Map<string, Track[]>();
+		let platform = cfg.playlists[0].platform;
+		let tracks: Track[] = [];
+		let index = -1;
+		let expPinged = false;
+
+		const setStatus = (t: string) => (statusEl.textContent = t);
+
+		function renderList() {
+			listEl.innerHTML = "";
+			tracks.forEach((t, i) => {
+				const li = document.createElement("li");
+				const btn = document.createElement("button");
+				btn.type = "button";
+				btn.className = "fp-track" + (i === index ? " fp-track--active" : "");
+				btn.innerHTML = "";
+				const name = document.createElement("span");
+				name.className = "fp-track-name";
+				name.textContent = t.name;
+				const artist = document.createElement("span");
+				artist.className = "fp-track-artist";
+				artist.textContent = t.artist;
+				btn.append(name, artist);
+				btn.addEventListener("click", () => play(i));
+				li.appendChild(btn);
+				listEl.appendChild(li);
+			});
+		}
+
+		async function loadPlaylist(p: string) {
+			platform = p;
+			root.querySelectorAll("[data-fp-tab]").forEach((el) =>
+				el.classList.toggle("fp-tab--active", (el as HTMLElement).dataset.fpTab === p),
+			);
+			if (cache.has(p)) {
+				tracks = cache.get(p) as Track[];
+				renderList();
+				setStatus(`${tracks.length} 首`);
+				return;
+			}
+			setStatus("加载歌单…");
+			listEl.innerHTML = '<li class="fp-hint">加载中…</li>';
+			const entry = cfg.playlists.find((x) => x.platform === p);
+			try {
+				const res = await fetch(
+					`/api/music/playlist?platform=${p}&id=${encodeURIComponent(entry?.id || "")}`,
+				);
+				const data = await res.json();
+				if (!res.ok || !Array.isArray(data.tracks)) throw new Error(data.error || "加载失败");
+				tracks = data.tracks;
+				cache.set(p, tracks);
+				renderList();
+				setStatus(`${tracks.length} 首`);
+			} catch (e) {
+				setStatus("歌单加载失败");
+				listEl.innerHTML = '<li class="fp-hint">这个歌单暂时拉不到，换一张试试</li>';
+			}
+		}
+
+		async function play(i: number) {
+			if (i < 0 || i >= tracks.length) return;
+			index = i;
+			const t = tracks[i];
+			titleEl.textContent = t.name;
+			artistEl.textContent = t.artist;
+			if (t.pic) {
+				coverEl.src = t.pic;
+				coverEl.hidden = false;
+				coverEmpty.style.display = "none";
+			} else {
+				coverEl.hidden = true;
+				coverEmpty.style.display = "";
+			}
+			renderList();
+			setStatus("解析直链…");
+			try {
+				const q = new URLSearchParams({
+					platform,
+					id: t.id,
+					name: t.name,
+					singer: t.artist,
+					quality: cfg.quality || "320k",
+				});
+				const res = await fetch(`/api/music/resolve?${q}`);
+				const data = await res.json();
+				if (!res.ok || !data.url) throw new Error(data.error || "解析失败");
+				audio.src = data.url;
+				await audio.play();
+				if (data.swapped) {
+					setStatus("已换源 · " + (PLATFORM_LABELS[data.servedPlatform] || data.servedPlatform || ""));
+					const myIndex = i;
+					setTimeout(() => { if (index === myIndex) setStatus(""); }, 3500);
+				} else setStatus("");
+				if (!expPinged) {
+					expPinged = true;
+					window.dispatchEvent(new CustomEvent("fishExp", { detail: { amount: 3, reason: "music" } }));
+				} else {
+					window.dispatchEvent(new CustomEvent("fishExp", { detail: { amount: 1, reason: "music" } }));
+				}
+			} catch (e) {
+				setStatus("这首拿不到直链，跳下一首");
+				const rows = listEl.querySelectorAll(".fp-track");
+				rows[i]?.classList.add("fp-track--failed");
+				setTimeout(() => play((i + 1) % tracks.length), 600);
+			}
+		}
+
+		toggleBtn.addEventListener("click", async () => {
+			if (index === -1) {
+				panel.hidden = false;
+				if (!tracks.length) await loadPlaylist(platform);
+				if (tracks.length) play(0);
+				return;
+			}
+			if (audio.paused) audio.play();
+			else audio.pause();
+		});
+		$("[data-fp-next]").addEventListener("click", () => tracks.length && play((index + 1) % tracks.length));
+		$("[data-fp-prev]").addEventListener("click", () => tracks.length && play((index - 1 + tracks.length) % tracks.length));
+		$("[data-fp-expand]").addEventListener("click", async () => {
+			panel.hidden = !panel.hidden;
+			if (!panel.hidden && !tracks.length) await loadPlaylist(platform);
+		});
+		$("[data-fp-close]").addEventListener("click", () => {
+			audio.pause();
+			root.hidden = true;
+			sessionStorage.setItem("fpClosed", "1");
+		});
+		root.querySelectorAll("[data-fp-tab]").forEach((el) =>
+			el.addEventListener("click", () => loadPlaylist((el as HTMLElement).dataset.fpTab || platform)),
+		);
+		// ─── 整改（2026-10-31）：缩球 + 进度环 + 拖动 + 收起保险 + 断流自愈 ───
+		const PLATFORM_LABELS: Record<string, string> = { wy: "网易", tx: "QQ", kw: "酷我", kg: "酷狗", mg: "咪咕" };
+		const bar = $(".fp-bar") as HTMLElement;
+		const ball = $("[data-fp-ball]") as HTMLButtonElement;
+		const ringFg = $("[data-fp-ring]") as unknown as SVGCircleElement;
+		const ballCover = $("[data-fp-ball-cover]") as HTMLImageElement;
+		const ballGlyph = $("[data-fp-ball-glyph]") as HTMLElement;
+		const ballState = $("[data-fp-ball-state]") as HTMLElement;
+		const RING_C = 2 * Math.PI * 25;
+		ringFg.style.strokeDasharray = String(RING_C);
+		ringFg.style.strokeDashoffset = String(RING_C);
+		let collapsed = false;
+		let shrinkTimer: ReturnType<typeof setTimeout> | undefined;
+		let dragging = false;
+		let justDragged = false;
+		function showBall() {
+			collapsed = true;
+			panel.hidden = true;
+			bar.style.display = "none";
+			ball.hidden = false;
+			root.classList.add("fp--ball");
+		}
+		function showBar() {
+			collapsed = false;
+			ball.hidden = true;
+			bar.style.display = "";
+			root.classList.remove("fp--ball");
+			armShrink();
+		}
+		function armShrink() {
+			clearTimeout(shrinkTimer);
+			if (collapsed || audio.paused) return;
+			shrinkTimer = setTimeout(() => {
+				if (!audio.paused && !dragging) showBall();
+			}, 4000);
+		}
+		ball.addEventListener("click", () => {
+			if (justDragged) { justDragged = false; return; }
+			showBar();
+		});
+		root.addEventListener("pointerenter", () => clearTimeout(shrinkTimer));
+		root.addEventListener("pointerleave", armShrink);
+		root.addEventListener("pointerdown", () => clearTimeout(shrinkTimer));
+		root.addEventListener("pointerup", armShrink);
+		// 收起保险：点播放器外面就把歌单面板收起
+		document.addEventListener("pointerdown", (e) => {
+			if (!panel.hidden && !root.contains(e.target as Node)) panel.hidden = true;
+		});
+		// 进度环 + 球封面同步
+		audio.addEventListener("timeupdate", () => {
+			const d = audio.duration;
+			const pr = d > 0 && isFinite(d) ? audio.currentTime / d : 0;
+			ringFg.style.strokeDashoffset = String(RING_C * (1 - pr));
+			if (coverEl.src && ballCover.src !== coverEl.src) {
+				ballCover.src = coverEl.src;
+				ballCover.hidden = false;
+				ballGlyph.style.display = "none";
+			}
+		});
+		// 拖动（播放条空白区与球）：>6px 判拖动，落点存 fpPosV1
+		const POS_KEY = "fpPosV1";
+		function applyPos(x: number, y: number) {
+			const w = root.offsetWidth, h = root.offsetHeight;
+			const nx = Math.min(Math.max(4, x), Math.max(4, window.innerWidth - w - 4));
+			const ny = Math.min(Math.max(4, y), Math.max(4, window.innerHeight - h - 4));
+			root.style.left = nx + "px";
+			root.style.top = ny + "px";
+			root.style.bottom = "auto";
+			root.style.right = "auto";
+		}
+		try {
+			const savedPos = JSON.parse(localStorage.getItem(POS_KEY) || "null");
+			if (savedPos && typeof savedPos.x === "number") applyPos(savedPos.x, savedPos.y);
+		} catch {}
+		let dragSt: { dx: number; dy: number; sx: number; sy: number } | null = null;
+		root.addEventListener("pointerdown", (e) => {
+			const t = e.target as HTMLElement;
+			if (t.closest("[data-fp-panel]")) return;
+			if (t.closest("button") && !t.closest("[data-fp-ball]")) return;
+			const r = root.getBoundingClientRect();
+			dragSt = { dx: e.clientX - r.left, dy: e.clientY - r.top, sx: e.clientX, sy: e.clientY };
+		});
+		window.addEventListener("pointermove", (e) => {
+			if (!dragSt) return;
+			if (!dragging && Math.hypot(e.clientX - dragSt.sx, e.clientY - dragSt.sy) < 6) return;
+			dragging = true;
+			applyPos(e.clientX - dragSt.dx, e.clientY - dragSt.dy);
+		});
+		window.addEventListener("pointerup", () => {
+			if (!dragSt) return;
+			if (dragging) {
+				justDragged = true;
+				const r = root.getBoundingClientRect();
+				try { localStorage.setItem(POS_KEY, JSON.stringify({ x: Math.round(r.left), y: Math.round(r.top) })); } catch {}
+				setTimeout(() => { justDragged = false; }, 60);
+			}
+			dragSt = null;
+			dragging = false;
+		});
+		// 断流自愈：直链被掐断时重新解析一次（后端带换源），再不行 play() 内部会跳下一首
+		let healing = false;
+		audio.addEventListener("error", async () => {
+			if (index < 0 || healing || !audio.src) return;
+			healing = true;
+			setStatus("直链断了，重新解析…");
+			try { await play(index); } catch {}
+			healing = false;
+		});
+
+		audio.addEventListener("play", () => {
+			toggleBtn.textContent = "⏸";
+			coverEl.classList.add("fp-cover--spin");
+			ballState.textContent = "⏸";
+			armShrink();
+		});
+		audio.addEventListener("pause", () => {
+			toggleBtn.textContent = "▶";
+			coverEl.classList.remove("fp-cover--spin");
+			ballState.textContent = "▶";
+			clearTimeout(shrinkTimer);
+		});
+		audio.addEventListener("ended", () => {
+			if (tracks.length) play((index + 1) % tracks.length);
+		});
+
+		// 默认收缩（站长 2026-10-31 定）：进站只露球，点球展开播放条；
+		// 播放后 4 秒自动缩回的原有节奏不变。root 在此之前一直 hidden，
+		// 同一脚本任务内完成展开→收缩，不会闪一下播放条。
+		showBall();
+	})();
+</script>

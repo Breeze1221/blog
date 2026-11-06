@@ -1,0 +1,251 @@
+/* ==========================================================================
+   Page Transition Animations (Swup) & Global Animations
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Swup Page Transitions
+   -------------------------------------------------------------------------- */
+
+/* Main Content Transition */
+.transition-main {
+    transition: 
+        opacity 120ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        transform 120ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Leaving Animation */
+.transition-leaving {
+    transition:
+        transform 120ms cubic-bezier(0.55, 0.055, 0.675, 0.19),
+        opacity 120ms cubic-bezier(0.55, 0.055, 0.675, 0.19);
+}
+
+/* 切页期间将过渡元素提升到合成层，避免移动端动画在主线程绘制掉帧卡顿 */
+html.is-changing .transition-main,
+html.is-animating .transition-main,
+html.is-animating.is-leaving .transition-leaving {
+    will-change: transform, opacity;
+}
+
+/* State: Changing (Swup) */
+html.is-changing .transition-main {
+    transition: 
+        opacity 120ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        transform 120ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+html.is-leaving .transition-main {
+    transition: 
+        opacity 120ms cubic-bezier(0.55, 0.055, 0.675, 0.19),
+        transform 120ms cubic-bezier(0.55, 0.055, 0.675, 0.19);
+}
+
+/* State: Animating (Entering) */
+html.is-animating .transition-main {
+    opacity: 0;
+    transform: translateY(2rem);
+}
+
+/* State: Leaving */
+html.is-animating.is-leaving .transition-leaving {
+    transform: translateY(-2rem);
+    opacity: 0;
+}
+
+/* Swup Fade Fallback */
+html.is-changing .transition-swup-fade {
+    transition: all 120ms ease-out;
+}
+
+html.is-animating .transition-swup-fade {
+    opacity: 0;
+    transform: translateY(1rem);
+}
+
+/* --------------------------------------------------------------------------
+   2. Keyframes
+   -------------------------------------------------------------------------- */
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(2rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   3. Onload Animations
+   -------------------------------------------------------------------------- */
+
+.onload-animation {
+    opacity: 0;
+    animation: fade-in-up 120ms ease-out forwards;
+}
+
+/* 渐进式动画延迟 */
+.onload-animation:nth-child(1) { animation-delay: 0ms; }
+.onload-animation:nth-child(2) { animation-delay: 30ms; }
+.onload-animation:nth-child(3) { animation-delay: 60ms; }
+.onload-animation:nth-child(4) { animation-delay: 90ms; }
+.onload-animation:nth-child(5) { animation-delay: 120ms; }
+
+/* --------------------------------------------------------------------------
+   4. Navigation Progress Bar
+   -------------------------------------------------------------------------- */
+
+/* --------------------------------------------------------------------------
+   5. 形态切换全局淡变（Mode Fade）
+   --------------------------------------------------------------------------
+   切换 data-site-mode / data-astral-theme 时，setting-utils 的 beginModeFade()
+   先给 html 挂 .mode-fade 再改属性，本节让高频表面元素在 1s 内只过渡颜色类
+   属性（背景 / 文字 / 边框 / 填充），结束后 JS 摘除类。不给 * 挂 transition，
+   避免大面积常驻过渡拖慢日常交互。 */
+
+html.mode-fade,
+html.mode-fade body,
+html.mode-fade .card-base,
+html.mode-fade #navbar-wrapper,
+html.mode-fade #navbar,
+html.mode-fade .float-panel,
+html.mode-fade .btn-regular,
+html.mode-fade .btn-card,
+html.mode-fade .btn-plain,
+html.mode-fade .btn-scale,
+html.mode-fade input,
+html.mode-fade textarea,
+html.mode-fade select {
+    transition:
+        background-color 1000ms ease,
+        border-color 1000ms ease,
+        color 1000ms ease,
+        fill 1000ms ease,
+        stroke 1000ms ease,
+        outline-color 1000ms ease,
+        text-decoration-color 1000ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html.mode-fade,
+    html.mode-fade body,
+    html.mode-fade .card-base,
+    html.mode-fade #navbar-wrapper,
+    html.mode-fade #navbar,
+    html.mode-fade .float-panel,
+    html.mode-fade .btn-regular,
+    html.mode-fade .btn-card,
+    html.mode-fade .btn-plain,
+    html.mode-fade .btn-scale,
+    html.mode-fade input,
+    html.mode-fade textarea,
+    html.mode-fade select {
+        transition: none !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   6. 会话级开屏（Splash Screen）
+   --------------------------------------------------------------------------
+   每会话只播一次（sessionStorage splashSeen，Layout 内联脚本同步判定）；
+   背景直接用当前形态的 --page-bg、文字用 --deep-text，不另起视觉体系。
+   点任意处跳过，约 1.9s 自动散去；开屏期间锁滚动。 */
+
+html.splash-open {
+    overflow: hidden;
+}
+
+#splash-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    background: var(--page-bg);
+    color: var(--deep-text);
+    cursor: pointer;
+    animation: splash-in 380ms ease both;
+}
+
+#splash-screen[hidden] {
+    display: none;
+}
+
+#splash-screen.splash-out {
+    opacity: 0;
+    transition: opacity 400ms ease;
+}
+
+#splash-screen .splash-fish {
+    height: min(42vh, 360px);
+    width: auto;
+    animation: splash-bob 1.8s ease-in-out infinite;
+}
+
+#splash-screen .splash-name {
+    font-size: clamp(1.9rem, 6vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+    text-align: center;
+}
+
+#splash-screen .splash-hi {
+    font-size: 1rem;
+    opacity: 0.75;
+}
+
+@keyframes splash-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes splash-bob {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #splash-screen,
+    #splash-screen .splash-fish {
+        animation: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   4b. Navigation Progress Bar（自上方第 4 节移至文末，规则不变）
+   -------------------------------------------------------------------------- */
+
+#progress-bar {
+    --progress-height: 3px;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--progress-height);
+    z-index: 9999;
+    pointer-events: none;
+    background: var(--primary);
+    box-shadow: 0 0 8px color-mix(in oklch, var(--primary) 60%, transparent);
+    transform-origin: left center;
+    transform: scaleX(0);
+    opacity: 0;
+    /* 提升到合成层：切页期间主线程忙碌时进度条仍由合成线程平滑推进 */
+    will-change: transform;
+}

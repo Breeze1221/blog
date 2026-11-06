@@ -1,0 +1,171 @@
+// 浮动播放器 · 歌单拉取（第三批）：按平台歌单 ID 拉全单（歌名/歌手/封面/
+// 各曲 ID），播放器打开时调用，点播再走 /api/music/resolve 取直链。
+// GET /api/music/playlist?platform=wy|tx|kg&id=<歌单ID>
+const UA =
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
+
+async function fetchText(url, headers = {}, timeout = 9000) {
+	const res = await fetch(url, {
+		headers: { "User-Agent": UA, ...headers },
+		signal: AbortSignal.timeout(timeout),
+	});
+	if (!res.ok) throw new Error("上游 HTTP " + res.status);
+	return res.text();
+}
+
+async function playlistNetease(id) {
+	const text = await fetchText(
+		`https://music.163.com/api/v3/playlist/detail?id=${encodeURIComponent(id)}`,
+		{ Referer: "https://music.163.com/" },
+	);
+	const data = JSON.parse(text);
+	const pl = data?.playlist;
+	if (!pl) throw new Error("网易云歌单解析失败");
+	// detail 接口的 tracks 只给前几首（实测 321 首的单只回 6 首），全单 ID
+	// 在 trackIds 里，缺的详情按每批 100 个去 song/detail 补齐再按原序拼。
+	const byId = new Map();
+	for (const t of pl.tracks || []) byId.set(String(t.id), t);
+	const ids = (pl.trackIds || [])
+		.map((x) => String(x?.id ?? x))
+		.filter((x) => x && x !== "undefined");
+	const orderedIds = ids.length ? ids : [...byId.keys()];
+	const missing = orderedIds.filter((x) => !byId.has(x));
+	for (let i = 0; i < missing.length; i += 100) {
+		const batch = missing.slice(i, i + 100);
+		const c = encodeURIComponent(
+			JSON.stringify(batch.map((x) => ({ id: Number(x) || x }))),
+		);
+		const t2 = await fetchText(
+			`https://music.163.com/api/v3/song/detail?c=${c}`,
+			{ Referer: "https://music.163.com/" },
+		);
+		const d2 = JSON.parse(t2);
+		for (const song of d2?.songs || []) byId.set(String(song.id), song);
+	}
+	const tracks = orderedIds
+		.map((x) => byId.get(x))
+		.filter(Boolean)
+		.map((t) => ({
+			id: String(t.id),
+			name: t.name || "",
+			artist: (t.ar || []).map((a) => a.name).join(" / "),
+			pic: t.al?.picUrl || "",
+		}));
+	if (!tracks.length) throw new Error("网易云歌单为空");
+	return { name: pl.name || "", tracks };
+}
+
+async function playlistTencent(id) {
+	const text = await fetchText(
+		`https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg?type=1&json=1&utf8=1&onlysong=0&disstid=${encodeURIComponent(id)}`,
+		{ Referer: "https://y.qq.com/" },
+	);
+	const data = JSON.parse(text);
+	const cd = data?.cdlist?.[0];
+	if (!cd || !Array.isArray(cd.songlist)) throw new Error("QQ 歌单解析失败");
+	return {
+		name: cd.dissname || "",
+		tracks: cd.songlist.map((t) => ({
+			id: String(t.songmid || ""),
+			name: t.songname || "",
+			artist: (t.singer || []).map((a) => a.name).join(" / "),
+			pic: t.albummid
+				? `https://y.gtimg.cn/music/photo_new/T002R300x300M000${t.albummid}.jpg`
+				: "",
+		})),
+	};
+}
+
+async function playlistKugou(id) {
+	// 酷狗歌单页把曲目嵌在页面的 global_collection 里，尽力解析
+	const html = await fetchText(
+		`https://www.kugou.com/yy/special/single/${encodeURIComponent(id)}.html`,
+		{},
+	);
+	const m = html.match(/global_collection\s*=\s*(\[[\s\S]*?\]);/);
+	if (!m) throw new Error("酷狗歌单解析失败");
+	const list = JSON.parse(m[1]);
+	return {
+		name: "",
+		tracks: list.map((t) => ({
+			id: String(t.hash || ""),
+			name: String(t.audio_name || "").replace(/^\S+\s-\s/, ""),
+			artist: t.singername || t.author_name || "",
+			pic: String(t.img || t.album_img || "").replace("{size}", "200"),
+		})),
+	};
+}
+
+// 上游给的封面常是 http 明文地址（如网易云 p1.music.126.net），页面是
+// https 时浏览器会因混合内容把整页标成「不完全安全」；这些图床都支持
+// https，出接口前统一升级。
+const httpsPic = (u) =>
+	typeof u === "string" ? u.replace(/^http:\/\//i, "https://") : u;
+
+function json(data, status = 200, extraHeaders = {}) {
+	return new Response(JSON.stringify(data), {
+		status,
+		headers: { "Content-Type": "application/json", ...extraHeaders },
+	});
+}
+
+export async function onRequestGet(context) {
+	const { request } = context;
+
+	// 来源白名单（2026-11-05 站长定）：只放行自家页面调用，防止接口被站外白嫖。
+	// 取 Referer、缺了再看 Origin，都没有或域名不在名单内一律 403。必须在读
+	// 边缘缓存之前拦，否则缓存里的 200 会绕过校验。localhost 与 127.0.0.1
+	// 放行供本地 8880 测试入口使用。
+	const ALLOWED_HOSTS = [
+		"lanerc.me",
+		"origin.lanerc.me",
+		"hk.lanerc.me",
+		"firefly-6sp.pages.dev",
+		"localhost",
+		"127.0.0.1",
+	];
+	const srcHost = (() => {
+		for (const h of ["referer", "origin"]) {
+			const v = request.headers.get(h);
+			if (v) {
+				try {
+					return new URL(v).hostname;
+				} catch {}
+			}
+		}
+		return "";
+	})();
+	// vercel.app 按后缀放行（站长 2026-11-05 定）：灵感屋的 Vercel 预览域名
+	// 不固定，且为将来主站迁移预留；其余域名一律按上面的名单精确匹配。
+	const allowed =
+		ALLOWED_HOSTS.includes(srcHost) ||
+		srcHost === "vercel.app" ||
+		srcHost.endsWith(".vercel.app");
+	if (!allowed) {
+		return json({ error: "forbidden" }, 403);
+	}
+	const u = new URL(request.url);
+	const platform = u.searchParams.get("platform") || "";
+	const id = u.searchParams.get("id") || "";
+	const handlers = { wy: playlistNetease, tx: playlistTencent, kg: playlistKugou };
+	if (!handlers[platform] || !id) {
+		return json({ error: "参数缺失或平台不支持" }, 400);
+	}
+	const cache = caches.default;
+	const cacheKey = new Request(u.toString(), { method: "GET" });
+	const hit = await cache.match(cacheKey);
+	if (hit) return hit;
+	try {
+		const data = await handlers[platform](id);
+		data.tracks = data.tracks.map((t) => ({ ...t, pic: httpsPic(t.pic) }));
+		const res = json(
+			{ platform, ...data },
+			200,
+			{ "Cache-Control": "public, max-age=600" },
+		);
+		context.waitUntil(cache.put(cacheKey, res.clone()));
+		return res;
+	} catch (e) {
+		return json({ error: String(e?.message || e) }, 502);
+	}
+}
