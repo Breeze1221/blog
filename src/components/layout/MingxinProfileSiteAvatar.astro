@@ -1,4 +1,5 @@
 ---
+import { Icon } from "astro-icon/components";
 import leafDark from "@/assets/images/logo/firefly-dark.png";
 import leafLight from "@/assets/images/logo/firefly-light.png";
 import type { MingxinOtherSite } from "@/config/mingxinConfig";
@@ -6,7 +7,8 @@ import type { MingxinOtherSite } from "@/config/mingxinConfig";
 /**
  * 作者卡「其他站点」的站点图标（原站 ProfileCardSiteAvatar 移植）：
  * 折叠态头像堆叠与展开态站点行共用一份实现。
- * 本站叶片标（顶栏品牌 logo，本地资产）垫底，配了 icon 才压上 favicon img；
+ * 本站叶片标（顶栏品牌 logo，本地资产）垫底，配了 icon 才压上图标；
+ * icon 支持 Iconify 名称（按线性图标渲染）或图片地址（favicon）。
  * favicon 取不到/失败一律露叶片标（站长 2026-11-01 改口径，不用首字标）。
  * 防破图三保险：favicon img 默认 opacity:0、加载成功（内联 onload / 控制器
  * 补扫）才加 is-loaded 亮出；失败由内联 onerror + 控制器捕获监听双路标记
@@ -20,9 +22,15 @@ interface Props {
 }
 
 const { site, index } = Astro.props;
+/* Iconify 名形如 prefix:name（如 material-symbols:article-outline），
+   其余（http(s):// 或 / 开头）一律当图片地址走 favicon 渲染 */
+const isIconName = /^[a-z0-9-]+:[a-z0-9-]+$/i.test(site.icon);
 ---
 
-<span class="mxprofile-card__site-avatar" data-mxprofile-avatar={String(index)}>
+<span
+	class={`mxprofile-card__site-avatar${isIconName ? " is-icon-name" : ""}`}
+	data-mxprofile-avatar={String(index)}
+>
 	<img
 		class="mxprofile-card__site-avatar-leaf mxprofile-card__site-avatar-leaf--light"
 		src={leafLight.src}
@@ -37,16 +45,20 @@ const { site, index } = Astro.props;
 		loading="lazy"
 		decoding="async"
 	/>
-	{site.icon && (
-		<img
-			class="mxprofile-card__site-avatar-img"
-			data-mxprofile-site-icon
-			src={site.icon}
-			alt=""
-			loading="lazy"
-			decoding="async"
-			onload="this.classList.add('is-loaded')"
-			onerror="this.dataset.avatarFailed='true'"
-		/>
+	{isIconName ? (
+		<Icon name={site.icon} class="mxprofile-card__site-avatar-icon" />
+	) : (
+		site.icon && (
+			<img
+				class="mxprofile-card__site-avatar-img"
+				data-mxprofile-site-icon
+				src={site.icon}
+				alt=""
+				loading="lazy"
+				decoding="async"
+				onload="this.classList.add('is-loaded')"
+				onerror="this.dataset.avatarFailed='true'"
+			/>
+		)
 	)}
 </span>

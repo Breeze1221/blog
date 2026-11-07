@@ -148,7 +148,7 @@ export const siteConfig: SiteConfig = {
 	// 站点形态（全站默认）：full 华彩（全套呈现）/ pure 素简（简洁导航·专注阅读，对标 rainzt.cn 的 Pure 形态）/
 	// harmony 谐彩（Material 3 色阶·柔影，视觉参考 Shirone 主题）；
 	// 控制台主题页可改默认，访客可在显示设置（调色板）里覆盖、存 localStorage
-	siteMode: "full",
+	siteMode: "mingxin",
 
 	// 纸舟子主题（全站默认）：ink 纸面（轻笑Chuckle 纸底墨线）/ manual 手册（终末地工业手册风）；
 	// 两套是独立主题、仅借住纸舟一个形态槽位。控制台主题页可改默认，访客在显示设置里覆盖、存 localStorage

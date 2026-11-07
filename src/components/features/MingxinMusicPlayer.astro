@@ -16,7 +16,12 @@ const fpEnabled = !!fp?.enabled;
 const fpPlaylists = (fp?.playlists || []).filter((p) => p.id);
 const quality = fp?.quality || "320k";
 const meting = mingxinConfig.music;
-const playerVariant = meting.playerVariant === "pill" ? "pill" : "sidebar";
+const playerVariant =
+	meting.playerVariant === "pill"
+		? "pill"
+		: meting.playerVariant === "ball"
+			? "ball"
+			: "sidebar";
 const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 ---
 
@@ -278,6 +283,9 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 						<button class="mxpill__disc" data-mxpill-disc type="button" aria-label="音乐">
 							<svg class="mxpill__icon mxpill__icon--lg mxpill__disc-placeholder" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.175 19.825Q6 18.65 6 17t1.175-2.825T10 13q.575 0 1.063.138t.937.412V4q0-.425.288-.712T13 3h4q.425 0 .713.288T18 4v2q0 .425-.288.713T17 7h-3v10q0 1.65-1.175 2.825T10 21t-2.825-1.175"/></svg>
 							<img class="mxpill__disc-img is-empty" data-mxpill-disc-img src="" alt="" draggable="false" />
+							<span class="mxpill__disc-badge" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+							</span>
 						</button>
 					</div>
 					<!-- 尺寸探针：据此读各形态的目标尺寸，按目标占位夹取位置（同 mmz 做法） -->
@@ -285,6 +293,92 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 						<span class="mxpill__probe-bar"></span>
 						<span class="mxpill__probe-rise"></span>
 					</span>
+				</div>
+			</div>
+						<!-- 层叠式悬浮音乐球：信息面板(后) + 胶囊控制条(中) + 唱片球(前) -->
+			<div class="mxmp-view mxmp-view--ball">
+				<div class="mxball" data-mxball>
+					<!-- 第 1 层：歌曲信息面板 -->
+					<div class="mxball__panel">
+						<button class="mxball__close" data-mxball-close type="button" title="收起">×</button>
+						<div class="mxball__title" data-mxball-title>音乐播放器</div>
+						<div class="mxball__artist" data-mxball-artist>点击唱片开始播放</div>
+						<div class="mxball__progress">
+							<span class="mxball__time" data-mxball-time-cur>0:00</span>
+							<div class="mxball__track" data-mxball-track role="slider" tabindex="0" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+								<div class="mxball__fill" data-mxball-fill></div>
+							</div>
+							<span class="mxball__time" data-mxball-time-dur>0:00</span>
+						</div>
+					</div>
+					<!-- 第 2 层：控制条 -->
+					<div class="mxball__bar">
+						<button data-mxball-mode data-mode="sequence" type="button" title="播放模式：顺序播放" aria-label="播放模式：顺序播放">
+							<svg class="mxball__mode-icon" data-mode-icon="sequence" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" /></svg>
+							<svg class="mxball__mode-icon" data-mode-icon="one" viewBox="0 0 24 24" fill="currentColor"><path d="M11.5 10.5h-.75q-.325 0-.537-.213T10 9.75t.213-.537T10.75 9H12q.425 0 .713.288T13 10v4.25q0 .325-.213.538T12.25 15t-.537-.213t-.213-.537zM6.85 19l.85.85q.3.3.288.7t-.288.7q-.3.3-.712.313t-.713-.288L3.7 18.7q-.15-.15-.213-.325T3.426 18t.063-.375t.212-.325l2.575-2.575q.3-.3.713-.287t.712.312q.275.3.288.7t-.288.7l-.85.85H17v-3q0-.425.288-.712T18 13t.713.288T19 14v3q0 .825-.587 1.413T17 19zm10.3-12H7v3q0 .425-.288.713T6 11t-.712-.288T5 10V7q0-.825.588-1.412T7 5h10.15l-.85-.85q-.3-.3-.288-.7t.288-.7q.3-.3.712-.312t.713.287L20.3 5.3q.15.15.213.325t.062.375t-.062.375t-.213.325l-2.575 2.575q-.3.3-.712.288T16.3 9.25q-.275-.3-.288-.7t.288-.7z" /></svg>
+							<svg class="mxball__mode-icon" data-mode-icon="random" viewBox="0 0 24 24" fill="currentColor"><path d="M15 20q-.425 0-.712-.288T14 19t.288-.712T15 18h1.6l-2.475-2.475q-.3-.3-.287-.712t.312-.713t.713-.3t.712.3L18 16.55V15q0-.425.288-.712T19 14t.713.288T20 15v4q0 .425-.288.713T19 20zm-10.7-.3q-.275-.275-.275-.7t.275-.7L16.6 6H15q-.425 0-.712-.288T14 5t.288-.712T15 4h4q.425 0 .713.288T20 5v4q0 .425-.288.713T19 10t-.712-.288T18 9V7.4L5.7 19.7q-.275.275-.7.275t-.7-.275m-.025-14Q4 5.425 4 5t.275-.7t.687-.275t.713.275l4.2 4.175q.275.275.288.688t-.288.712q-.275.275-.7.275t-.7-.275z" /></svg>
+						</button>
+						<button data-mxball-mute type="button" title="静音" aria-label="静音" aria-pressed="false">
+							<svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20h4V4h-4v16zM4 20h4v-8H4v8zM16 9v11h4V9h-4z" /></svg>
+						</button>
+						<button data-mxball-prev type="button" title="上一首" aria-label="上一首">
+							<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
+						</button>
+						<button class="mxball__play" data-mxball-play type="button" title="播放/暂停" aria-label="播放">
+							<svg class="mxball__icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+							<svg class="mxball__icon-pause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
+						</button>
+						<button data-mxball-next type="button" title="下一首" aria-label="下一首">
+							<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6h2v12h-2z" /></svg>
+						</button>
+						<button data-mxball-list type="button" title="歌单" aria-label="歌单" aria-expanded="false">
+							<svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z" /></svg>
+						</button>
+						<button data-mxball-volume type="button" title="音量" aria-label="音量" aria-expanded="false">
+							<svg class="mxball__vol-icon" data-vol-icon="on" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" /></svg>
+							<svg class="mxball__vol-icon" data-vol-icon="off" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" /></svg>
+						</button>
+					</div>
+					<!-- 音量滑杆：挂在控制条上方，默认收起 -->
+					<div class="mxball__volume-pop" data-mxball-volume-pop>
+						<input type="range" min="0" max="1" step="0.01" value="0.7" data-mxball-volume-slider aria-label="音量" />
+					</div>
+					<!-- 歌单浮层：顶部 列表/歌词 页签，列表行带封面图 -->
+					<div class="mxball__playlist-pop" data-mxball-playlist-panel>
+						<div class="mxball__pop-tabs" role="tablist">
+							<button
+								class="mxball__pop-tab is-active"
+								data-mxball-tab="list"
+								type="button"
+								role="tab"
+								aria-selected="true"
+							>
+								列表
+							</button>
+							<button
+								class="mxball__pop-tab"
+								data-mxball-tab="lyrics"
+								type="button"
+								role="tab"
+								aria-selected="false"
+							>
+								歌词
+							</button>
+						</div>
+						<div class="mxball__pop-body">
+							<ol class="mxball__playlist" data-mxball-playlist></ol>
+							<div class="mxball__lyrics-view" data-mxball-lyrics-view hidden>
+								<div class="mxball__lyrics-list" data-mxball-lyrics-list></div>
+							</div>
+						</div>
+					</div>
+					<!-- 第 3 层：唱片球（始终可见） -->
+					<button class="mxball__ball" data-mxball-ball type="button" title="播放/暂停">
+						<img class="mxball__cover is-empty" data-mxball-cover alt="" draggable="false" />
+						<span class="mxball__badge" aria-hidden="true">
+							<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+						</span>
+					</button>
 				</div>
 			</div>
 			<audio data-mxmp-audio preload="none" />
@@ -310,11 +404,13 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 		z-index: 80;
 		color: var(--on-surface, #1f2430);
 	}
-	/* ── 双形态视图门：config 在首帧决定渲染哪张皮，未命中的一支整支不显示 ── */
-	#mingxin-music-player[data-mxmp-variant="sidebar"] .mxmp-view--pill {
-		display: none;
-	}
-	#mingxin-music-player[data-mxmp-variant="pill"] .mxmp-view--sidebar {
+	/* ── 三形态视图门：config 在首帧决定渲染哪张皮，未命中的整支不显示 ── */
+	#mingxin-music-player[data-mxmp-variant="sidebar"] .mxmp-view--pill,
+	#mingxin-music-player[data-mxmp-variant="sidebar"] .mxmp-view--ball,
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxmp-view--sidebar,
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxmp-view--ball,
+	#mingxin-music-player[data-mxmp-variant="ball"] .mxmp-view--sidebar,
+	#mingxin-music-player[data-mxmp-variant="ball"] .mxmp-view--pill {
 		display: none;
 	}
 	.mxmp-entry {
@@ -1701,6 +1797,229 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 		animation: mxpill-spin 1.2s linear infinite;
 	}
 
+	/* ══════════════════════════════════════════════════════════════════
+	   悬浮音乐球 · 层叠式皮肤（照 music-ball 设计稿移植）
+	   三层叠放：信息面板（后·较窄）+ 胶囊控制条（中）+ 唱片球（前·探出）
+	   仅作用于胶囊形态；侧栏形态与本段无关
+	   ══════════════════════════════════════════════════════════════════ */
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill {
+		--mxpill-bar-h: 4.125rem; /* 66px */
+		--mxpill-disc: 5.125rem; /* 82px */
+		--mxpill-disc-left: 0.75rem;
+		--mxpill-width: min(26.875rem, calc(100vw - 1rem)); /* 430px */
+		--ball-bg: rgba(24, 24, 26, 0.94);
+		--ball-bg-strong: rgba(24, 24, 26, 0.96);
+		--ball-ink: #fff;
+		--ball-ink-dim: #9a9a9e;
+		--ball-shadow: 0 0.625rem 1.875rem rgba(0, 0, 0, 0.45);
+		/* 覆盖主题面变量，供音量弹层等复用 */
+		--mxpill-surface: var(--ball-bg-strong);
+		--mxpill-panel-bg: #18181a;
+		--mxpill-border: rgba(255, 255, 255, 0.16);
+	}
+	/* ── 第 1 层：信息面板（较窄，两端露出控制条） ── */
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__card {
+		margin-inline: 1.5rem;
+		background: var(--ball-bg);
+		backdrop-filter: blur(0.875rem) saturate(1.35);
+		-webkit-backdrop-filter: blur(0.875rem) saturate(1.35);
+		border-radius: 1rem;
+		box-shadow: var(--ball-shadow);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__title {
+		color: var(--ball-ink);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__artist {
+		color: var(--ball-ink-dim);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__time-current,
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__time-total {
+		color: var(--ball-ink-dim);
+	}
+	/* 进度：细白轨 + 圆点 */
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__progress {
+		height: 3px;
+		background: rgba(255, 255, 255, 0.18);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__progress-bar {
+		background: var(--ball-ink);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__progress-thumb {
+		width: 0.625rem;
+		height: 0.625rem;
+		margin: -0.3125rem 0 0 -0.3125rem;
+		background: var(--ball-ink);
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+		opacity: 1;
+	}
+	/* 面板 tabs / 歌词 / 歌单文字转白系 */
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__tab {
+		color: var(--ball-ink-dim);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__tab:hover,
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__tab.is-active {
+		color: var(--ball-ink);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__tab-indicator {
+		background: var(--ball-ink);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__panel-tabs::after {
+		background: rgba(255, 255, 255, 0.12);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__loading {
+		color: var(--ball-ink);
+	}
+	:global(#mingxin-music-player .mxpill__track-title) {
+		color: var(--ball-ink, #fff);
+	}
+	:global(#mingxin-music-player .mxpill__track-artist) {
+		color: var(--ball-ink-dim, #9a9a9e);
+	}
+	:global(#mingxin-music-player .mxpill__track:hover .mxpill__track-title),
+	:global(#mingxin-music-player .mxpill__track.is-active .mxpill__track-title) {
+		color: var(--ball-ink, #fff);
+	}
+	:global(#mingxin-music-player .mxpill__track:hover),
+	:global(#mingxin-music-player .mxpill__track.is-active) {
+		background: rgba(255, 255, 255, 0.08);
+	}
+	:global(#mingxin-music-player .mxpill__track-active) {
+		background: rgba(255, 255, 255, 0.16);
+		color: var(--ball-ink, #fff);
+	}
+	:global(#mingxin-music-player .mxpill__lrc-line) {
+		color: var(--ball-ink-dim, #9a9a9e);
+	}
+	:global(#mingxin-music-player .mxpill__lrc-line:hover) {
+		color: var(--ball-ink, #fff);
+	}
+	:global(#mingxin-music-player .mxpill__lrc-line.is-active) {
+		color: var(--ball-ink, #fff);
+	}
+	:global(#mingxin-music-player .mxpill__lyrics-placeholder) {
+		color: var(--ball-ink-dim, #9a9a9e);
+	}
+
+	/* ── 第 2 层：胶囊控制条 ── */
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__bar {
+		z-index: 2;
+		background: var(--ball-bg-strong);
+		backdrop-filter: blur(0.875rem) saturate(1.35);
+		-webkit-backdrop-filter: blur(0.875rem) saturate(1.35);
+		border-radius: 9999px;
+		box-shadow: var(--ball-shadow);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__pill-label {
+		color: var(--ball-ink);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__btn {
+		color: #cfcfd4;
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__btn:hover {
+		background: rgba(255, 255, 255, 0.08);
+		color: var(--ball-ink);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__btn.is-active {
+		color: var(--ball-ink);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__btn::after {
+		background: #fff;
+		color: #111;
+	}
+	/* 大播放键：白色圆形，向上探出控制条 */
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__btn--play {
+		width: 3.625rem; /* 58px */
+		height: 3.625rem;
+		margin: 0 2px;
+		background: #fff;
+		color: #111;
+		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+		transform: translateY(-6px);
+		transition:
+			transform 200ms ease,
+			background-color 200ms ease;
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__btn--play:hover {
+		background: #fff;
+		color: #111;
+		transform: translateY(-6px) scale(1.06);
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__volume-icon {
+		color: #fff;
+		opacity: 0.55;
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__volume-bar,
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__volume-thumb {
+		background: #fff;
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__volume-bubble {
+		background: #fff;
+		color: #111;
+	}
+
+	/* ── 第 3 层：唱片球（探出控制条左侧与上方） ── */
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__disc {
+		z-index: 3;
+		background: #1c1c1e;
+		border: 2px solid rgba(255, 255, 255, 0.9);
+		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+	}
+	/* 收起居中孔，封面直接铺满球面（同设计稿） */
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__disc::after {
+		display: none;
+	}
+	#mingxin-music-player[data-mxmp-variant="pill"] .mxpill__disc-placeholder {
+		color: #fff;
+		opacity: 0.5;
+	}
+	/* 唱片底部≈控制条中线，上半探入面板区（同设计稿） */
+	#mingxin-music-player[data-mxmp-variant="pill"]
+		.mxpill[data-state="bar"]
+		.mxpill__disc {
+		bottom: calc(var(--mxpill-bar-h) / 2);
+		animation: mxball-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+	}
+	/* 中央播放小圆钮：暂停时显示，播放时缩没 */
+	.mxpill__disc-badge {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		width: 1.875rem;
+		height: 1.875rem;
+		margin: auto;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 9999px;
+		background: rgba(255, 255, 255, 0.92);
+		color: #111;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+		pointer-events: none;
+		transition:
+			opacity 250ms ease,
+			transform 250ms ease;
+	}
+	.mxpill__disc-badge svg {
+		width: 0.8125rem;
+		height: 0.8125rem;
+		margin-left: 1px;
+	}
+	.mxpill[data-playing="true"] .mxpill__disc-badge {
+		opacity: 0;
+		transform: scale(0.5);
+	}
+	@keyframes mxball-pop {
+		0% {
+			transform: translate(0, 0) scale(1);
+		}
+		60% {
+			transform: translate(12px, -16px) scale(1.12);
+		}
+		100% {
+			transform: translate(6px, -8px) scale(1.05);
+		}
+	}
+
 	@media (prefers-reduced-motion: reduce) {
 		.mxpill,
 		.mxpill *,
@@ -1711,22 +2030,630 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 			animation-iteration-count: 1 !important;
 		}
 	}
-</style>
 
-<script is:inline>
-	// 访客覆盖先于引擎脚本落位：localStorage["mingxinPlayerVariant"] 优先于
-	// 配置默认（控制台 playerVariant 只作默认）。本脚本在根元素之后、引擎
-	// （打包模块，deferred）之前执行，引擎读到的即覆盖后的形态。
-	(function () {
-		try {
-			var v = localStorage.getItem("mingxinPlayerVariant");
-			if (v === "pill" || v === "sidebar") {
-				var root = document.getElementById("mingxin-music-player");
-				if (root) root.setAttribute("data-mxmp-variant", v);
-			}
-		} catch (e) {}
-	})();
-</script>
+	/* ══════════════════════════════════════════════════════════════════
+	   悬浮音乐球 · 层叠式（1:1 照 music-ball 设计稿）
+	   三层：信息面板(后·较窄) + 胶囊控制条(中·负 margin 叠上) + 唱片球(前)
+	   ══════════════════════════════════════════════════════════════════ */
+	.mxball {
+		position: fixed;
+		/* 与浮动播放器原锚点一致：左下角 1.25rem */
+		left: 1.25rem;
+		bottom: 1.25rem;
+		width: 430px;
+		z-index: 99;
+		/* 收起时容器仍有 430px 宽的盒子，不能让透明区域吞掉页面点击：
+		   容器自身不接收指针，只有唱片球与展开后的面板/控制条/浮层可点 */
+		pointer-events: none;
+		font-family:
+			"PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+	}
+	/* ── 第 1 层（最底）：歌曲信息面板 —— 较窄、居中 ── */
+	.mxball__panel {
+		position: relative;
+		z-index: 1;
+		margin: 0 24px;
+		/* 左侧留出唱片球的位置（球 82px + 12px 起点 + 间距）：球在左下角时
+		   标题/歌手/进度都从球的右侧起排，不被球体挡住；右/上/下沿用设计稿 */
+		padding: 16px 18px 32px 104px;
+		background: rgba(24, 24, 26, 0.94);
+		backdrop-filter: blur(14px);
+		-webkit-backdrop-filter: blur(14px);
+		border-radius: 16px;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+		color: #fff;
+	}
+	.mxball__close {
+		position: absolute;
+		top: 10px;
+		right: 14px;
+		background: none;
+		border: none;
+		color: #8f8f94;
+		font-size: 18px;
+		line-height: 1;
+		cursor: pointer;
+		transition: color 0.2s;
+	}
+	.mxball__close:hover {
+		color: #fff;
+	}
+	.mxball__title {
+		font-size: 15px;
+		font-weight: 600;
+		letter-spacing: 0.5px;
+		color: #fff;
+	}
+	.mxball__artist {
+		font-size: 12px;
+		color: #9a9a9e;
+		margin-top: 6px;
+	}
+	.mxball__progress {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-top: 16px;
+	}
+	.mxball__time {
+		font-size: 11px;
+		color: #9a9a9e;
+		min-width: 30px;
+		font-variant-numeric: tabular-nums;
+	}
+	.mxball__time:last-child {
+		text-align: right;
+	}
+	.mxball__track {
+		flex: 1;
+		height: 3px;
+		background: rgba(255, 255, 255, 0.18);
+		border-radius: 2px;
+		position: relative;
+		cursor: pointer;
+	}
+	.mxball__fill {
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		width: 0%;
+		background: #fff;
+		border-radius: 2px;
+	}
+	.mxball__fill::after {
+		content: "";
+		position: absolute;
+		right: -5px;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		background: #fff;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+	}
+	/* ── 第 2 层：控制条 —— 更宽，向上压住面板下边缘 ── */
+	.mxball__bar {
+		position: relative;
+		z-index: 2;
+		margin-top: -20px;
+		height: 66px;
+		display: flex;
+		align-items: center;
+		padding: 0 14px 0 104px;
+		background: rgba(24, 24, 26, 0.96);
+		backdrop-filter: blur(14px);
+		-webkit-backdrop-filter: blur(14px);
+		border-radius: 999px;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+	}
+	.mxball__bar button {
+		flex: 1;
+		min-width: 0;
+		background: none;
+		border: none;
+		padding: 0;
+		color: #cfcfd4;
+		cursor: pointer;
+		height: 44px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition:
+			color 0.2s,
+			background 0.2s;
+	}
+	.mxball__bar button:hover {
+		color: #fff;
+		background: rgba(255, 255, 255, 0.08);
+	}
+	.mxball__bar button svg {
+		width: 18px;
+		height: 18px;
+	}
+	.mxball__play {
+		flex: none !important;
+		width: 58px;
+		height: 58px !important;
+		background: #fff !important;
+		color: #111 !important;
+		margin: 0 2px;
+		transform: translateY(-6px);
+		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+		transition: transform 0.2s;
+	}
+	.mxball__play:hover {
+		background: #fff !important;
+		color: #111 !important;
+		transform: translateY(-6px) scale(1.06);
+	}
+	.mxball__play svg {
+		width: 24px !important;
+		height: 24px !important;
+	}
+	.mxball__icon-pause {
+		display: none;
+	}
+	.mxball.is-playing .mxball__icon-play {
+		display: none;
+	}
+	.mxball.is-playing .mxball__icon-pause {
+		display: block;
+	}
+	/* ── 第 3 层（最前）：唱片球 —— 探出控制条左侧和上方 ── */
+	.mxball__ball {
+		position: absolute;
+		z-index: 3;
+		left: 12px;
+		bottom: 32px;
+		width: 82px;
+		height: 82px;
+		padding: 0;
+		border-radius: 50%;
+		border: 2px solid rgba(255, 255, 255, 0.9);
+		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+		overflow: hidden;
+		cursor: pointer;
+		pointer-events: auto;
+		background: #1c1c1e;
+	}
+	.mxball.is-show .mxball__ball {
+		animation: mxballPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+	}
+	@keyframes mxballPop {
+		0% {
+			transform: translate(0, 0) scale(1);
+		}
+		60% {
+			transform: translate(12px, -16px) scale(1.12);
+		}
+		100% {
+			transform: translate(6px, -8px) scale(1.05);
+		}
+	}
+	.mxball__cover {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		animation: mxballSpin 12s linear infinite;
+		animation-play-state: paused;
+	}
+	.mxball__cover.is-empty {
+		opacity: 0;
+	}
+	.mxball.is-playing .mxball__cover {
+		animation-play-state: running;
+	}
+	@keyframes mxballSpin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	.mxball__badge {
+		position: absolute;
+		inset: 0;
+		margin: auto;
+		width: 30px;
+		height: 30px;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.92);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #111;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+		transition:
+			opacity 0.25s,
+			transform 0.25s;
+		pointer-events: none;
+	}
+	.mxball.is-playing .mxball__badge {
+		opacity: 0;
+		transform: scale(0.5);
+	}
+	.mxball__badge svg {
+		width: 13px;
+		height: 13px;
+		margin-left: 2px;
+	}
+	/* ── 展开 / 收起动画 ── */
+	.mxball__panel,
+	.mxball__bar {
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transform-origin: left bottom;
+		transition:
+			opacity 0.22s ease,
+			transform 0.28s ease,
+			visibility 0s linear 0.25s;
+	}
+	.mxball__panel {
+		transform: translate(-14px, 26px) scale(0.9);
+	}
+	.mxball__bar {
+		transform: translate(-28px, 18px) scale(0.85);
+	}
+	.mxball.is-show .mxball__panel,
+	.mxball.is-show .mxball__bar {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+		transform: none;
+		transition:
+			opacity 0.3s ease,
+			transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+			visibility 0s;
+	}
+	.mxball.is-show .mxball__bar {
+		transition-delay: 0.06s;
+	}
+	.mxball.is-show .mxball__panel {
+		transition-delay: 0.14s;
+	}
+	/* 面板内容依次浮现 */
+	.mxball__panel .mxball__title,
+	.mxball__panel .mxball__artist,
+	.mxball__panel .mxball__progress {
+		opacity: 0;
+		transform: translateY(10px);
+		transition:
+			opacity 0.3s ease,
+			transform 0.35s ease;
+	}
+	.mxball.is-show .mxball__panel .mxball__title {
+		opacity: 1;
+		transform: none;
+		transition-delay: 0.26s;
+	}
+	.mxball.is-show .mxball__panel .mxball__artist {
+		opacity: 1;
+		transform: none;
+		transition-delay: 0.34s;
+	}
+	.mxball.is-show .mxball__panel .mxball__progress {
+		opacity: 1;
+		transform: none;
+		transition-delay: 0.42s;
+	}
+	/* ── 功能键状态：模式图标三态、静音图标、浮层开关高亮 ── */
+	.mxball__mode-icon,
+	.mxball__vol-icon {
+		display: none;
+	}
+	[data-mxball-mode][data-mode="sequence"] .mxball__mode-icon[data-mode-icon="sequence"],
+	[data-mxball-mode][data-mode="one"] .mxball__mode-icon[data-mode-icon="one"],
+	[data-mxball-mode][data-mode="random"] .mxball__mode-icon[data-mode-icon="random"],
+	.mxball__vol-icon[data-vol-icon="on"] {
+		display: block;
+	}
+	[data-mxball-mode][data-mode="one"],
+	[data-mxball-mode][data-mode="random"],
+	.mxball.is-volume-open [data-mxball-volume],
+	.mxball.is-list-open [data-mxball-list],
+	.mxball.is-muted [data-mxball-volume] {
+		color: #fff;
+	}
+	.mxball.is-muted .mxball__vol-icon[data-vol-icon="on"] {
+		display: none;
+	}
+	.mxball.is-muted .mxball__vol-icon[data-vol-icon="off"] {
+		display: block;
+	}
+	.mxball.is-muted [data-mxball-mute] {
+		opacity: 0.45;
+	}
+	/* ── 音量滑杆浮层：挂在控制条上沿，默认收起 ── */
+	.mxball__volume-pop {
+		position: absolute;
+		z-index: 4;
+		right: 22px;
+		bottom: calc(100% + 10px);
+		width: 176px;
+		padding: 13px 18px;
+		background: rgba(24, 24, 26, 0.96);
+		backdrop-filter: blur(14px);
+		-webkit-backdrop-filter: blur(14px);
+		border-radius: 999px;
+		box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transform: translateY(10px) scale(0.96);
+		transition:
+			opacity 0.18s ease,
+			transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+			visibility 0s linear 0.22s;
+	}
+	.mxball.is-volume-open .mxball__volume-pop {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+		transform: none;
+		transition:
+			opacity 0.18s ease,
+			transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+			visibility 0s;
+	}
+	.mxball__volume-pop input[type="range"] {
+		-webkit-appearance: none;
+		appearance: none;
+		display: block;
+		width: 100%;
+		height: 4px;
+		margin: 0;
+		border-radius: 2px;
+		/* 已播部分用白色、右侧灰色，随音量值实时推进 */
+		background: linear-gradient(
+			to right,
+			#fff 0,
+			#fff var(--mxball-vol, 70%),
+			rgba(255, 255, 255, 0.2) var(--mxball-vol, 70%),
+			rgba(255, 255, 255, 0.2) 100%
+		);
+		outline: none;
+		cursor: pointer;
+	}
+	.mxball__volume-pop input[type="range"]::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		background: #fff;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+	}
+	.mxball__volume-pop input[type="range"]::-moz-range-thumb {
+		width: 12px;
+		height: 12px;
+		border: none;
+		border-radius: 50%;
+		background: #fff;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+	}
+	/* ── 歌单浮层：挂在控制条上沿，默认收起 ── */
+	.mxball__playlist-pop {
+		position: absolute;
+		z-index: 4;
+		left: 24px;
+		right: 24px;
+		bottom: calc(100% + 10px);
+		display: flex;
+		flex-direction: column;
+		padding: 0;
+		max-height: min(380px, 54vh);
+		overflow: hidden;
+		overscroll-behavior: contain;
+		background: rgba(24, 24, 26, 0.96);
+		backdrop-filter: blur(14px);
+		-webkit-backdrop-filter: blur(14px);
+		border-radius: 14px;
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transform: translateY(10px) scale(0.96);
+		transition:
+			opacity 0.18s ease,
+			transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+			visibility 0s linear 0.22s;
+	}
+	.mxball.is-list-open .mxball__playlist-pop {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+		transform: none;
+		transition:
+			opacity 0.18s ease,
+			transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+			visibility 0s;
+	}
+	/* 顶部页签：列表 / 歌词，激活项白色下划线（照设计要求） */
+	.mxball__pop-tabs {
+		display: flex;
+		flex: none;
+		gap: 22px;
+		padding: 10px 14px 0;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+	}
+	.mxball__pop-tab {
+		position: relative;
+		padding: 2px 5px 10px;
+		border: none;
+		background: none;
+		color: #8b8b91;
+		font: inherit;
+		font-size: 13px;
+		letter-spacing: 0.02em;
+		cursor: pointer;
+		transition: color 0.18s ease;
+	}
+	.mxball__pop-tab:hover {
+		color: #d4d4d8;
+	}
+	.mxball__pop-tab.is-active {
+		color: #fff;
+		font-weight: 600;
+	}
+	.mxball__pop-tab.is-active::after {
+		content: "";
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: -1px;
+		height: 2px;
+		border-radius: 2px;
+		background: #fff;
+	}
+	.mxball__pop-body {
+		flex: 1 1 auto;
+		min-height: 0;
+		padding: 6px;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		scrollbar-width: thin;
+		scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+	}
+	.mxball__playlist {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	/* 歌单行：封面缩略图 + 曲名/歌手，当前曲整行浅底高亮。
+	   行是运行时由 renderBallList 生成的，必须 :global 才能吃到本组件作用域样式 */
+	:global(.mxball__list-item) {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		width: 100%;
+		padding: 7px 6px;
+		border: none;
+		border-radius: 10px;
+		background: none;
+		color: #cfcfd4;
+		font: inherit;
+		text-align: left;
+		cursor: pointer;
+		transition:
+			background 0.18s,
+			color 0.18s;
+	}
+	:global(.mxball__list-item:hover) {
+		background: rgba(255, 255, 255, 0.08);
+		color: #fff;
+	}
+	:global(.mxball__list-item.is-current) {
+		background: rgba(255, 255, 255, 0.13);
+		color: #fff;
+	}
+	:global(.mxball__list-cover) {
+		flex: none;
+		width: 54px;
+		height: 54px;
+		border-radius: 9px;
+		object-fit: cover;
+		background: rgba(255, 255, 255, 0.07);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+	}
+	:global(.mxball__list-cover.is-empty) {
+		background: linear-gradient(
+			135deg,
+			rgba(255, 255, 255, 0.12),
+			rgba(255, 255, 255, 0.04)
+		);
+	}
+	:global(.mxball__list-info) {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		min-width: 0;
+	}
+	:global(.mxball__list-name),
+	:global(.mxball__list-artist) {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	:global(.mxball__list-name) {
+		font-size: 14.5px;
+		font-weight: 600;
+		line-height: 1.3;
+		color: #f2f2f4;
+	}
+	:global(.mxball__list-artist) {
+		font-size: 12px;
+		color: #9a9aa0;
+	}
+	:global(.mxball__list-item.is-current .mxball__list-artist) {
+		color: #c9c9ce;
+	}
+	:global(.mxball__list-empty) {
+		padding: 12px 10px;
+		text-align: center;
+		font-size: 12px;
+		color: #9a9a9e;
+	}
+	/* 歌词页签：沿用侧栏歌词的居中列风格 */
+	.mxball__lyrics-list {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		padding: 4px 0 8px;
+	}
+	/* 歌词行同样是运行时生成的，作用域样式需要 :global */
+	:global(.mxball__lyric-line) {
+		padding: 7px 10px;
+		border: none;
+		border-radius: 8px;
+		background: none;
+		color: #8e8e94;
+		font: inherit;
+		font-size: 12px;
+		line-height: 1.35;
+		text-align: center;
+		cursor: pointer;
+		transition:
+			color 0.18s,
+			background 0.18s;
+	}
+	:global(.mxball__lyric-line:hover) {
+		color: #d7d7db;
+		background: rgba(255, 255, 255, 0.05);
+	}
+	:global(.mxball__lyric-line.is-active) {
+		color: #fff;
+		font-weight: 600;
+		background: rgba(255, 255, 255, 0.09);
+	}
+	:global(.mxball__lyrics-empty) {
+		margin: 0;
+		padding: 18px 10px;
+		text-align: center;
+		font-size: 12px;
+		color: #8a8a90;
+	}
+	/* 窄屏收边，避免溢出视口 */
+	@media (max-width: 520px) {
+		.mxball {
+			left: 1.25rem;
+			bottom: 1.25rem;
+			width: calc(100vw - 40px);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.mxball,
+		.mxball *,
+		.mxball *::before,
+		.mxball *::after {
+			transition-duration: 0.01ms !important;
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+		}
+	}
+</style>
 
 <script>
 	import { isArticleDetailPage } from "@/utils/url-utils";
@@ -1737,6 +2664,7 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 		// 播放器形态由 config 在首帧写进 data-mxmp-variant；两张皮共用本引擎，
 		// 皮只是视图——切皮（改配置重构建）不重启、不暂停播放状态机本身
 		const isPillVariant = root.dataset.mxmpVariant === "pill";
+		const isBallVariant = root.dataset.mxmpVariant === "ball";
 
 		const cfgEl = root.querySelector("[data-mxmp-config]");
 		let cfg = {
@@ -2060,10 +2988,18 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 		const seenKeys = new Set<string>();
 		let index = -1;
 		let mode: "sequence" | "one" | "random" = "sequence";
+		/** 音乐球皮的模式图标同步钩子：球控制器装配时挂上，切模式时回调 */
+		let ballSyncMode: (() => void) | null = null;
+		/** 音乐球皮的歌单刷新钩子：异步合并曲库后，歌单浮层开着就重渲染 */
+		let ballRefreshList: (() => void) | null = null;
+		/** 音乐球皮的歌词钩子：歌词加载/切歌时重建面板，播放时只同步高亮 */
+		let ballLyricsRender: (() => void) | null = null;
+		let ballLyricsHighlight: (() => void) | null = null;
 		let expanded = false;
 		let lyrics: { time: number; text: string }[] = [];
 		let lyricIndex = -1;
 		let lyricsToken = 0;
+		let lyricsStatus: "loading" | "empty" | "failed" | "ready" = "empty";
 
 		const dedupeKey = (name: string, artist: string) =>
 			`${name}::${artist}`.toLowerCase().replace(/[\s\p{P}]+/gu, "");
@@ -2079,17 +3015,18 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 		function emitMxState() {
 			window.dispatchEvent(new Event("mxmusic:state"));
 		}
-		function emitMxTime() {
-			window.dispatchEvent(new Event("mxmusic:time"));
-		}
 
+		// 缓存歌单条目按钮，播放/暂停时只切当前项的 class，不全量重建
+		let cachedListBtns: HTMLButtonElement[] = [];
 		function renderList() {
 			listEl.innerHTML = "";
+			cachedListBtns = [];
 			if (!tracks.length) {
 				listEl.innerHTML = '<li class="music-player__empty">歌单是空的</li>';
 				emitMxState();
 				return;
 			}
+			const playing = !audio.paused;
 			tracks.forEach((t, i) => {
 				const li = document.createElement("li");
 				const btn = document.createElement("button");
@@ -2098,7 +3035,7 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 					"mxmp-playlist-item" + (i === index ? " mxmp-playlist-item--current" : "");
 				const idx = document.createElement("span");
 				idx.className = "mxmp-playlist-index";
-				idx.textContent = i === index && !audio.paused ? "▶" : String(i + 1);
+				idx.textContent = i === index && playing ? "▶" : String(i + 1);
 				const copy = document.createElement("span");
 				copy.className = "mxmp-playlist-copy";
 				const name = document.createElement("strong");
@@ -2113,11 +3050,25 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 				btn.addEventListener("click", () => play(i));
 				li.appendChild(btn);
 				listEl.appendChild(li);
+				cachedListBtns.push(btn);
 			});
 			pillSyncList();
 			// 歌单在展开态下增删行会改变总高，跟住底边重新避让
 			if (!card.hidden) relayout();
 			emitMxState();
+		}
+
+		// 仅更新播放/暂停态在歌单里的视觉（▶ 符号 + current 高亮），不重建 DOM
+		function updateListPlayState() {
+			const playing = !audio.paused;
+			cachedListBtns.forEach((btn, i) => {
+				btn.classList.toggle("mxmp-playlist-item--current", i === index);
+				const idx = btn.querySelector(".mxmp-playlist-index");
+				if (idx)
+					idx.textContent =
+						i === index && playing ? "▶" : String(i + 1);
+			});
+			pillSyncList();
 		}
 
 		function mergeTracks(incoming: Track[]) {
@@ -2131,6 +3082,7 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 				added++;
 			}
 			if (added > 0) renderList();
+			ballRefreshList?.();
 			return added;
 		}
 
@@ -2226,8 +3178,12 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 		}
 
 		function renderLyrics(state: "loading" | "empty" | "failed" | "ready") {
+			lyricsStatus = state;
+			// 音乐球浮层若停在「歌词」页签，同步重建它的歌词列表
+			ballLyricsRender?.();
 			pillRenderLyrics(state);
 			lyricsList.innerHTML = "";
+			cachedLyricLines = [];
 			if (state !== "ready") {
 				const p = document.createElement("p");
 				p.className = "music-player__lyrics-empty";
@@ -2240,7 +3196,7 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 				lyricsList.appendChild(p);
 				return;
 			}
-			lyrics.forEach((line, i) => {
+			lyrics.forEach((line) => {
 				const btn = document.createElement("button");
 				btn.type = "button";
 				btn.className = "mxmp-lyric-line";
@@ -2249,6 +3205,7 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 					audio.currentTime = line.time;
 				});
 				lyricsList.appendChild(btn);
+				cachedLyricLines.push(btn);
 			});
 		}
 
@@ -2260,12 +3217,18 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 			try {
 				let lrcUrl = t.lrc || "";
 				if (!lrcUrl && t.source === "chain" && t.id) {
-					// 浮动链条目自带不了歌词，按平台 + id 去 Meting 补查一次
-					const server = PLATFORM_TO_METING_SERVER[t.platform || ""];
-					if (server && cfg.metingApi) {
-						const res = await fetch(metingUrl(server, "song", t.id));
-						const data = await res.json();
-						lrcUrl = Array.isArray(data) ? data[0]?.lrc || "" : "";
+					// 浮动链条目只带曲目信息：网易云直接走本站歌词代理（Meting 的
+					// song 类型同样能取到 lrc 地址，多绕一次上游，故优先直连）
+					const platform = t.platform || "";
+					if (platform === "wy") {
+						lrcUrl = `/api/music/lyric?id=${encodeURIComponent(t.id)}`;
+					} else {
+						const server = PLATFORM_TO_METING_SERVER[platform];
+						if (server && cfg.metingApi) {
+							const res = await fetch(metingUrl(server, "song", t.id));
+							const data = await res.json();
+							lrcUrl = Array.isArray(data) ? data[0]?.lrc || "" : "";
+						}
 					}
 				}
 				if (!lrcUrl) {
@@ -2283,8 +3246,24 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 			}
 		}
 
+		// 缓存歌词行 DOM，避免每次 timeupdate 都 querySelectorAll
+		let cachedLyricLines: HTMLElement[] = [];
+
 		function syncLyricHighlight() {
 			if (!lyrics.length) return;
+			// 歌词面板隐藏时不做 DOM 操作与滚动，省主线程
+			if (lyricsPanel.hidden) {
+				// 只在内存里更新索引，面板展开时再同步高亮
+				const t = audio.currentTime;
+				let next = -1;
+				for (let i = 0; i < lyrics.length; i++) {
+					if (lyrics[i].time <= t) next = i;
+					else break;
+				}
+				lyricIndex = next;
+				ballLyricsHighlight?.();
+				return;
+			}
 			const t = audio.currentTime;
 			let next = -1;
 			for (let i = 0; i < lyrics.length; i++) {
@@ -2292,15 +3271,18 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 				else break;
 			}
 			if (next === lyricIndex) return;
+			const prevIndex = lyricIndex;
 			lyricIndex = next;
+			ballLyricsHighlight?.();
 			pillSyncLyric();
 			emitMxState();
-			const lines = lyricsList.querySelectorAll(".mxmp-lyric-line");
-			lines.forEach((el, i) =>
-				el.classList.toggle("mxmp-lyric-line--active", i === lyricIndex),
-			);
-			if (lyricIndex >= 0) {
-				(lines[lyricIndex] as HTMLElement | undefined)?.scrollIntoView({
+			// 只切换前后两行的 class，避免遍历整个歌词列表
+			const lines = cachedLyricLines;
+			if (prevIndex >= 0 && lines[prevIndex])
+				lines[prevIndex].classList.remove("mxmp-lyric-line--active");
+			if (lyricIndex >= 0 && lines[lyricIndex]) {
+				lines[lyricIndex].classList.add("mxmp-lyric-line--active");
+				(lines[lyricIndex] as HTMLElement).scrollIntoView({
 					block: "center",
 					behavior: "smooth",
 				});
@@ -2330,7 +3312,8 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 				entryCover.hidden = true;
 				entryGlyph.style.display = "";
 			}
-			renderList();
+			// 切歌只更新高亮行，不全量重建歌单 DOM
+			updateListPlayState();
 			void loadLyrics(t);
 			try {
 				if (t.source === "meting" && t.url) {
@@ -2412,6 +3395,7 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 			);
 			modeBtn.classList.toggle("mxmp-on", mode !== "sequence");
 			pillSyncMode();
+			ballSyncMode?.();
 			emitMxState();
 		};
 		modeBtn.addEventListener("click", cycleMode);
@@ -2442,33 +3426,45 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 		// 音量（存 localStorage，与浮动播放器互不干扰）
 		const VOL_KEY = "mxMusicVolume";
 		let lastVolume = 0.7;
+		let volSaveTimer: number | undefined;
 		try {
 			const saved = Number(localStorage.getItem(VOL_KEY));
 			if (saved > 0 && saved <= 1) lastVolume = saved;
 		} catch {}
+		/** 音量同步订阅：胶囊/音乐球的滑杆挂进来，任意一处改音量都统一刷新 */
+		const volumeSyncers: Array<(v: number) => void> = [];
+		const applyVolume = (raw: number) => {
+			const v = Math.min(Math.max(raw, 0), 1);
+			audio.muted = false;
+			audio.volume = v;
+			if (v > 0) lastVolume = v;
+			volumeEl.value = String(v);
+			volumeEl.style.setProperty("--vol-pct", `${Math.round(v * 100)}%`);
+			muteBtn.textContent = v === 0 ? "🔇" : "🔊";
+			muteBtn.setAttribute("aria-pressed", String(v === 0));
+			// 拖动时 input 高频触发，localStorage 写入防抖，避免阻塞主线程
+			window.clearTimeout(volSaveTimer);
+			volSaveTimer = window.setTimeout(() => {
+				try {
+					localStorage.setItem(VOL_KEY, String(v));
+				} catch {}
+			}, 250);
+			pillSyncVolume();
+			emitMxState();
+			volumeSyncers.forEach((sync) => sync(v));
+		};
+		// 初始音量：直接落值（applyVolume 依赖后面的胶囊缓存，不能在这里跑）
 		audio.volume = lastVolume;
 		volumeEl.value = String(lastVolume);
 		volumeEl.style.setProperty("--vol-pct", `${Math.round(lastVolume * 100)}%`);
-		volumeEl.addEventListener("input", () => {
-			const v = Number(volumeEl.value);
-			audio.volume = v;
-			if (v > 0) lastVolume = v;
-			volumeEl.style.setProperty("--vol-pct", `${Math.round(v * 100)}%`);
-			muteBtn.textContent = v === 0 ? "🔇" : "🔊";
-			try {
-				localStorage.setItem(VOL_KEY, String(v));
-			} catch {}
-			pillSyncVolume();
-			emitMxState();
-		});
-		muteBtn.addEventListener("click", () => {
-			const target = audio.volume === 0 ? lastVolume || 0.7 : 0;
-			volumeEl.value = String(target);
-			volumeEl.dispatchEvent(new Event("input"));
-		});
+		volumeEl.addEventListener("input", () => applyVolume(Number(volumeEl.value)));
+		muteBtn.addEventListener("click", () =>
+			applyVolume(audio.volume === 0 ? lastVolume || 0.7 : 0),
+		);
 
 		// 进度
 		let scrubbing = false;
+		let timeUpdateRaf = 0;
 		progressEl.addEventListener("input", () => {
 			scrubbing = true;
 			const d = audio.duration || 0;
@@ -2482,18 +3478,26 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 			scrubbing = false;
 		});
 		audio.addEventListener("timeupdate", () => {
-			const d = audio.duration;
-			if (!scrubbing && d > 0 && isFinite(d)) {
-				progressEl.value = String(Math.round((audio.currentTime / d) * 1000));
-				progressEl.style.setProperty(
-					"--pct",
-					`${(audio.currentTime / d) * 100}%`,
-				);
-			}
-			timeCur.textContent = fmtTime(audio.currentTime);
-			syncLyricHighlight();
-			pillSyncProgress();
-			emitMxTime();
+			// 用 rAF 把进度/歌词同步合并到下一帧，避免 timeupdate（~4Hz）
+			// 与滚动渲染抢主线程；多帧内的多次 timeupdate 只取最后一次
+			if (timeUpdateRaf !== 0) return;
+			timeUpdateRaf = requestAnimationFrame(() => {
+				timeUpdateRaf = 0;
+				const d = audio.duration;
+				// 侧栏卡片收起时不更新侧栏滑杆（胶囊皮走 pillSyncProgress）
+				if (!card.hidden && !scrubbing && d > 0 && isFinite(d)) {
+					progressEl.value = String(
+						Math.round((audio.currentTime / d) * 1000),
+					);
+					progressEl.style.setProperty(
+						"--pct",
+						`${(audio.currentTime / d) * 100}%`,
+					);
+					timeCur.textContent = fmtTime(audio.currentTime);
+				}
+				syncLyricHighlight();
+				pillSyncProgress();
+			});
 		});
 		audio.addEventListener("loadedmetadata", () => {
 			timeDur.textContent = fmtTime(audio.duration);
@@ -2506,7 +3510,7 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 			toggleBtn.setAttribute("aria-label", "暂停");
 			entryState.textContent = "⏸";
 			coverWrap.classList.add("music-player__cover--playing");
-			renderList();
+			updateListPlayState();
 			emitMxState();
 		});
 		audio.addEventListener("pause", () => {
@@ -2515,7 +3519,7 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 			toggleBtn.setAttribute("aria-label", "播放");
 			entryState.textContent = "▶";
 			coverWrap.classList.remove("music-player__cover--playing");
-			renderList();
+			updateListPlayState();
 			emitMxState();
 		});
 		audio.addEventListener("ended", () => {
@@ -2619,6 +3623,11 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 		let pillCollapseTimer: number | undefined;
 		let pillSettleTimer: number | undefined;
 		let pillSeeking = false;
+		// 进度条高频更新用的 DOM 缓存，在 pill 装配时一次性取好
+		let pillProgressBar: HTMLElement | null = null;
+		let pillProgressThumb: HTMLElement | null = null;
+		let pillProgressEl: HTMLElement | null = null;
+		let pillTimeCur: HTMLElement | null = null;
 		let pillListSig = -1;
 		let pillRenderedCount = 0;
 		let pillLyricsEnabled = true;
@@ -2960,15 +3969,15 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 			const d = audio.duration;
 			if (!d || !isFinite(d)) return;
 			const pct = (audio.currentTime / d) * 100;
-			const bar = pillQ("[data-mxpill-progress-bar]");
-			const thumb = pillQ("[data-mxpill-progress-thumb]");
-			const progress = pillQ("[data-mxpill-progress]");
+			// 直接用缓存的 DOM 引用，避免每帧 querySelector
+			const bar = pillProgressBar;
+			const thumb = pillProgressThumb;
+			const progress = pillProgressEl;
 			if (bar) bar.style.width = `${pct}%`;
 			if (thumb) thumb.style.left = `${pct}%`;
 			if (progress)
 				progress.setAttribute("aria-valuenow", String(Math.round(pct)));
-			const cur = pillQ("[data-mxpill-time-cur]");
-			if (cur) cur.textContent = fmtTime(audio.currentTime);
+			if (pillTimeCur) pillTimeCur.textContent = fmtTime(audio.currentTime);
 		}
 
 		function pillSyncDuration() {
@@ -3059,6 +4068,12 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 			const volPop = pillQ("[data-mxpill-volume-pop]");
 			const listEl2 = pillQ("[data-mxpill-list]");
 			const lyricsListEl2 = pillQ("[data-mxpill-lyrics-list]");
+
+			// 一次性缓存高频更新的进度条 DOM，避免 timeupdate 每帧 querySelector
+			pillProgressBar = pillQ("[data-mxpill-progress-bar]");
+			pillProgressThumb = pillQ("[data-mxpill-progress-thumb]");
+			pillProgressEl = progressEl2;
+			pillTimeCur = pillQ("[data-mxpill-time-cur]");
 
 			// 悬停展开 / 离开 160ms 收回（播放中、面板关着才收）
 			pillEl.addEventListener("pointerenter", () => {
@@ -3329,6 +4344,339 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 			pillSyncVolume();
 			pillUpdateText();
 			relayoutPill();
+		}
+
+		// ── 层叠式音乐球（ball）控制器：视觉 1:1 照设计稿，播放复用同一引擎 ──
+		if (isBallVariant) {
+			const ballEl = $("[data-mxball]");
+			const ballBall = $("[data-mxball-ball]");
+			const ballPlay = $("[data-mxball-play]");
+			const ballClose = $("[data-mxball-close]");
+			const ballModeBtn = $("[data-mxball-mode]");
+			const ballMuteBtn = $("[data-mxball-mute]");
+			const ballVolumeBtn = $("[data-mxball-volume]");
+			const ballListBtn = $("[data-mxball-list]");
+			const ballVolumeSlider = $(
+				"[data-mxball-volume-slider]",
+			) as HTMLInputElement | null;
+			const ballListOl = $("[data-mxball-playlist]");
+			const ballListPop = $("[data-mxball-playlist-panel]");
+			const ballLyricsView = $("[data-mxball-lyrics-view]");
+			const ballLyricsListEl = $("[data-mxball-lyrics-list]");
+			const ballTitleEl = $("[data-mxball-title]");
+			const ballArtistEl = $("[data-mxball-artist]");
+			const ballCur = $("[data-mxball-time-cur]");
+			const ballDur = $("[data-mxball-time-dur]");
+			const ballFill = $("[data-mxball-fill]");
+			const ballTrack = $("[data-mxball-track]");
+			const ballCover = root.querySelector(
+				"[data-mxball-cover]",
+			) as HTMLImageElement;
+			if (ballEl && ballBall && ballPlay) {
+				// 1) 悬停展开 / 离开收起（点 × 锁定本次悬停）
+				let ballHideTimer: number | undefined;
+				const ballShow = () => {
+					window.clearTimeout(ballHideTimer);
+					if (!ballEl.classList.contains("is-locked"))
+						ballEl.classList.add("is-show");
+				};
+				const ballHide = () => {
+					ballHideTimer = window.setTimeout(() => {
+						ballEl.classList.remove("is-show");
+						ballEl.classList.remove("is-locked");
+						ballCloseFlyouts();
+					}, 200);
+				};
+				ballBall.addEventListener("mouseenter", ballShow);
+				ballEl.addEventListener("mouseenter", () =>
+					window.clearTimeout(ballHideTimer),
+				);
+				ballEl.addEventListener("mouseleave", ballHide);
+				ballClose?.addEventListener("click", (e) => {
+					e.stopPropagation();
+					ballEl.classList.remove("is-show");
+					ballEl.classList.add("is-locked");
+					ballCloseFlyouts();
+				});
+
+				// 2) 播放 / 暂停（播放键与唱片球都可点）
+				const ballToggle = () => {
+					if (index === -1) {
+						if (tracks.length) void play(0);
+						return;
+					}
+					if (audio.paused) void audio.play();
+					else audio.pause();
+				};
+				ballPlay.addEventListener("click", ballToggle);
+				ballBall.addEventListener("click", ballToggle);
+
+				// 3) 功能键：模式循环 / 静音 / 音量 / 上下一首 / 歌单
+				const ballCloseFlyouts = () => {
+					ballEl.classList.remove("is-volume-open", "is-list-open");
+					ballVolumeBtn?.setAttribute("aria-expanded", "false");
+					ballListBtn?.setAttribute("aria-expanded", "false");
+				};
+				// 模式三态图标随引擎状态同步（顺序 / 单曲 / 随机）
+				const ballSyncModeNow = () => {
+					if (!ballModeBtn) return;
+					const label =
+						mode === "sequence"
+							? "顺序播放"
+							: mode === "one"
+								? "单曲循环"
+								: "随机播放";
+					ballModeBtn.dataset.mode = mode;
+					ballModeBtn.title = `播放模式：${label}`;
+					ballModeBtn.setAttribute("aria-label", `播放模式：${label}`);
+				};
+				ballSyncMode = ballSyncModeNow;
+				ballSyncModeNow();
+				ballModeBtn?.addEventListener("click", cycleMode);
+				ballMuteBtn?.addEventListener("click", () =>
+					applyVolume(audio.volume === 0 ? lastVolume || 0.7 : 0),
+				);
+				ballVolumeBtn?.addEventListener("click", (e) => {
+					e.stopPropagation();
+					const open = !ballEl.classList.contains("is-volume-open");
+					ballEl.classList.toggle("is-volume-open", open);
+					ballEl.classList.remove("is-list-open");
+					ballListBtn?.setAttribute("aria-expanded", "false");
+					ballVolumeBtn.setAttribute("aria-expanded", String(open));
+				});
+				ballListBtn?.addEventListener("click", (e) => {
+					e.stopPropagation();
+					const open = !ballEl.classList.contains("is-list-open");
+					ballEl.classList.toggle("is-list-open", open);
+					ballEl.classList.remove("is-volume-open");
+					ballVolumeBtn?.setAttribute("aria-expanded", "false");
+					ballListBtn.setAttribute("aria-expanded", String(open));
+					if (open) {
+						renderBallList();
+						updateBallListState();
+						ballSetTab("list");
+					}
+				});
+				$("[data-mxball-prev]")?.addEventListener("click", () => pickNext(-1));
+				$("[data-mxball-next]")?.addEventListener("click", () => pickNext(1));
+
+				// 音量滑杆：与侧栏共用同一个音量状态机（含静音恢复、持久化）
+				if (ballVolumeSlider) {
+					const ballSyncVolume = (v: number) => {
+						ballVolumeSlider.value = String(v);
+						ballVolumeSlider.style.setProperty(
+							"--mxball-vol",
+							`${Math.round(v * 100)}%`,
+						);
+						ballEl.classList.toggle("is-muted", v === 0);
+						ballMuteBtn?.setAttribute("aria-pressed", String(v === 0));
+						if (ballMuteBtn)
+							ballMuteBtn.title = v === 0 ? "取消静音" : "静音";
+					};
+					volumeSyncers.push(ballSyncVolume);
+					ballSyncVolume(audio.volume);
+					ballVolumeSlider.addEventListener("input", () =>
+						applyVolume(Number(ballVolumeSlider.value)),
+					);
+				}
+
+				// 歌单浮层：打开时按当前曲库渲染（封面缩略图 + 曲名/歌手），当前曲整行高亮
+				const renderBallList = () => {
+					if (!ballListOl) return;
+					ballListOl.innerHTML = "";
+					if (!tracks.length) {
+						const empty = document.createElement("li");
+						empty.className = "mxball__list-empty";
+						empty.textContent = "歌单加载中…";
+						ballListOl.appendChild(empty);
+						return;
+					}
+					const frag = document.createDocumentFragment();
+					tracks.forEach((t, i) => {
+						const li = document.createElement("li");
+						const btn = document.createElement("button");
+						btn.type = "button";
+						btn.className = "mxball__list-item";
+						const cover = document.createElement("img");
+						cover.className = "mxball__list-cover";
+						cover.alt = "";
+						cover.loading = "lazy";
+						cover.decoding = "async";
+						cover.referrerPolicy = "no-referrer";
+						cover.addEventListener("error", () => {
+							cover.removeAttribute("src");
+							cover.classList.add("is-empty");
+						});
+						if (t.pic) cover.src = t.pic;
+						else cover.classList.add("is-empty");
+						const info = document.createElement("span");
+						info.className = "mxball__list-info";
+						const name = document.createElement("span");
+						name.className = "mxball__list-name";
+						name.textContent = t.name || "未知曲目";
+						const artist = document.createElement("span");
+						artist.className = "mxball__list-artist";
+						artist.textContent = t.artist || "";
+						info.append(name, artist);
+						btn.append(cover, info);
+						btn.addEventListener("click", () => void play(i));
+						li.appendChild(btn);
+						frag.appendChild(li);
+					});
+					ballListOl.appendChild(frag);
+				};
+				const updateBallListState = () => {
+					ballListOl
+						?.querySelectorAll<HTMLElement>(".mxball__list-item")
+						.forEach((btn, i) =>
+							btn.classList.toggle("is-current", i === index),
+						);
+				};
+				// 歌词页签：按引擎现成歌词渲染，点击行跳转；播放时只同步当前行
+				let ballLyricsKey = "";
+				let ballLyricActive = -2;
+				const renderBallLyrics = () => {
+					if (!ballLyricsListEl) return;
+					const key = `${lyricsStatus}|${lyrics.map((l) => l.text).join("\u0001")}`;
+					if (key === ballLyricsKey) return;
+					ballLyricsKey = key;
+					ballLyricActive = -2;
+					ballLyricsListEl.innerHTML = "";
+					if (lyricsStatus !== "ready" || !lyrics.length) {
+						const p = document.createElement("p");
+						p.className = "mxball__lyrics-empty";
+						p.textContent =
+							lyricsStatus === "loading"
+								? "歌词加载中…"
+								: lyricsStatus === "failed"
+									? "歌词加载失败"
+									: "暂无歌词";
+						ballLyricsListEl.appendChild(p);
+						return;
+					}
+					lyrics.forEach((line) => {
+						const btn = document.createElement("button");
+						btn.type = "button";
+						btn.className = "mxball__lyric-line";
+						btn.textContent = line.text;
+						btn.addEventListener("click", () => {
+							audio.currentTime = line.time;
+						});
+						ballLyricsListEl.appendChild(btn);
+					});
+				};
+				const syncBallLyricHighlight = () => {
+					if (!ballLyricsListEl || ballLyricsView?.hidden) return;
+					if (lyricIndex === ballLyricActive) return;
+					ballLyricActive = lyricIndex;
+					const rows =
+						ballLyricsListEl.querySelectorAll<HTMLElement>(".mxball__lyric-line");
+					rows.forEach((row, i) =>
+						row.classList.toggle("is-active", i === lyricIndex),
+					);
+					if (lyricIndex >= 0) {
+						rows[lyricIndex]?.scrollIntoView({
+							block: "center",
+							behavior: "smooth",
+						});
+					}
+				};
+				ballLyricsRender = () => {
+					if (!ballEl.classList.contains("is-list-open")) return;
+					renderBallLyrics();
+					syncBallLyricHighlight();
+				};
+				ballLyricsHighlight = syncBallLyricHighlight;
+				// 顶部页签：列表 / 歌词互斥切换
+				const ballTabs = Array.from(
+					ballListPop?.querySelectorAll<HTMLElement>("[data-mxball-tab]") ?? [],
+				);
+				const ballSetTab = (tab: "list" | "lyrics") => {
+					ballTabs.forEach((btn) => {
+						const active = btn.dataset.mxballTab === tab;
+						btn.classList.toggle("is-active", active);
+						btn.setAttribute("aria-selected", String(active));
+					});
+					if (ballListOl) ballListOl.hidden = tab !== "list";
+					if (ballLyricsView) ballLyricsView.hidden = tab !== "lyrics";
+					if (tab === "lyrics") {
+						renderBallLyrics();
+						syncBallLyricHighlight();
+					}
+				};
+				ballTabs.forEach((btn) =>
+					btn.addEventListener("click", () =>
+						ballSetTab(btn.dataset.mxballTab === "lyrics" ? "lyrics" : "list"),
+					),
+				);
+				// 异步合并曲库（浮动歌单 → Meting 扩展源）后，浮层开着就重渲染
+				ballRefreshList = () => {
+					if (!ballEl.classList.contains("is-list-open")) return;
+					renderBallList();
+					updateBallListState();
+				};
+
+				// 4) 进度条点击跳转
+				const ballSeek = (clientX: number) => {
+					const rect = ballTrack.getBoundingClientRect();
+					const ratio = Math.min(
+						Math.max((clientX - rect.left) / rect.width, 0),
+						1,
+					);
+					const d = audio.duration;
+					if (d && isFinite(d)) audio.currentTime = ratio * d;
+				};
+				ballTrack.addEventListener("click", (e) => ballSeek(e.clientX));
+
+				// 5) 与音频引擎同步：播放态 / 进度 / 曲目
+				const ballSyncPlayState = () => {
+					ballEl.classList.toggle("is-playing", !audio.paused);
+				};
+				audio.addEventListener("play", ballSyncPlayState);
+				audio.addEventListener("pause", ballSyncPlayState);
+
+				const ballSyncProgress = () => {
+					const d = audio.duration;
+					if (d && isFinite(d)) {
+						const pct = (audio.currentTime / d) * 100;
+						ballFill.style.width = `${pct}%`;
+						ballTrack.setAttribute(
+							"aria-valuenow",
+							String(Math.round(pct)),
+						);
+						ballDur.textContent = fmtTime(d);
+					}
+					ballCur.textContent = fmtTime(audio.currentTime);
+				};
+				audio.addEventListener("timeupdate", ballSyncProgress);
+				audio.addEventListener("loadedmetadata", ballSyncProgress);
+
+				const ballSyncTrack = () => {
+					const t = index >= 0 ? tracks[index] : tracks[0];
+					if (!t) return;
+					ballTitleEl.textContent = t.name || "音乐";
+					ballArtistEl.textContent = t.artist || "";
+					if (t.pic) {
+						ballCover.src = t.pic;
+						ballCover.classList.remove("is-empty");
+					} else {
+						ballCover.classList.add("is-empty");
+					}
+					updateBallListState();
+				};
+				audio.addEventListener("loadstart", ballSyncTrack);
+
+				// 歌单是异步拉的，等它落位后再同步首曲信息
+				let ballWaitTries = 0;
+				const ballWaitTracks = () => {
+					if (tracks.length) {
+						ballSyncTrack();
+						return;
+					}
+					if (ballWaitTries++ < 15) window.setTimeout(ballWaitTracks, 800);
+				};
+				ballWaitTracks();
+			}
 		}
 
 		// 装配顺序：浮动歌单先行（先渲染先可播），Meting 扩展源后台合并

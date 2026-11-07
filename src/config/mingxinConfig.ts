@@ -31,7 +31,11 @@ export interface MingxinOtherSite {
 	name: string;
 	/** 站点地址（外链原样使用，新窗打开，不走 url()） */
 	url: string;
-	/** 站点图标 URL（各站自己的 favicon 直连；空串或加载失败时回落本站叶片标） */
+	/**
+	 * 站点图标：可写 Iconify 图标名（含冒号，如 material-symbols:article-outline，
+	 * 按线性图标渲染），也可写图片 URL / 本地路径（按 favicon 渲染）；空串或
+	 * 图片加载失败时回落本站叶片标。
+	 */
 	icon: string;
 }
 
@@ -222,11 +226,11 @@ export interface MingxinConfig {
 		metingApi: string;
 		metingSources: { server: string; type: string; id: string; label: string }[];
 		/**
-		 * 播放器形态（同一引擎、两张皮，切换不断播）：
-		 * "sidebar" = Shirone 风侧栏卡；"pill" = mmz 风唱片胶囊
-		 * （唱片 → 歌词胶囊 → 悬停展开工具栏）。控制台主题页可改。
+		 * 播放器形态（同一引擎、三张皮，切换不断播）：
+		 * "sidebar" = Shirone 风侧栏卡；"pill" = mmz 风唱片胶囊；
+		 * "ball" = 层叠式悬浮音乐球（面板 + 胶囊控制条 + 唱片球，悬停展开）。
 		 */
-		playerVariant: "sidebar" | "pill";
+		playerVariant: "sidebar" | "pill" | "ball";
 	};
 }
 
@@ -273,7 +277,7 @@ export const mingxinConfig: MingxinConfig = {
 		"/assets/images/mingxin/pool/mosaic-feiyu-cafe.webp",
 	],
 	mosaicMode: "manual",
-	mosaicOverlayImage: "https://img.lanerc.me/admin/wallpaper/mvtocdl0-157a8f8e4b29e92fee0efd9f08f9bb19_720.webp",
+	mosaicOverlayImage: "https://imgbed.breezexing.xyz /file/1793607637515_11_1_.jpg",
 	mosaicOverlayPool: [],
 	mosaicOverlayMode: "manual",
 	heroSubtitle: "山高自有可行路，水深自有渡船人❤",
@@ -286,13 +290,19 @@ export const mingxinConfig: MingxinConfig = {
 	profileBannerPool: [],
 	profileBannerMode: "manual",
 	otherSites: [
-		{ name: "旧站存档", url: "https://breezexing.xyz", icon: "/favicon/breeze.jpg" },
-		{ name: "灵感屋", url: "https://idea.lanerc.me", icon: "/assets/images/mingxin/avatar.png" },
-		{ name: "主域名线路", url: "https://breezexing.xyz/", icon: "/assets/images/mingxin/avatar.png" },
-		{ name: "国内备用线路", url: "https://breezexing.xyz/", icon: "/assets/images/mingxin/avatar.png" },
-		{ name: "海外加速线路", url: "https://breezexing.xyz/", icon: "/assets/images/mingxin/avatar.png" },
-		{ name: "站点统计", url: "https://breezexing.xyz/analytics/", icon: "/assets/images/mingxin/avatar.png" },
-		{ name: "Breeze Console", url: "https://breezexing.xyz/admin/", icon: "/assets/images/mingxin/avatar.png" },
+		{ name: "主域名线路", url: "https://breezexing.xyz/", icon: "https://imgbed.breezexing.xyz/file/背景/1793971856133_avatar.png" },
+		{ name: "站点统计", url: "https://breezexing.xyz/analytics/", icon: "https://imgbed.breezexing.xyz/file/背景/1793971856133_avatar.png" },
+		{ name: "Breeze Console", url: "https://breezexing.xyz/admin/", icon: "https://imgbed.breezexing.xyz/file/背景/1793971856133_avatar.png" },
+		{ name: "博客", url: "https://blog.breezexing.xyz/", icon: "material-symbols:article-outline" },
+		{ name: "导航", url: "https://nav.breezexing.xyz/", icon: "material-symbols:explore-outline" },
+		{ name: "图床", url: "https://imgbed.breezexing.xyz/", icon: "material-symbols:image-outline" },
+		{ name: "笔记", url: "https://notes.breezexing.xyz/", icon: "material-symbols:note-alt-outline" },
+		{ name: "二维码生成", url: "https://qrcode.breezexing.xyz/", icon: "material-symbols:qr-code-2" },
+		{ name: "新闻热点", url: "https://news.breezexing.xyz/", icon: "material-symbols:newspaper" },
+		{ name: "站点检测", url: "https://status.breezexing.xyz/", icon: "material-symbols:monitoring" },
+		{ name: "IP 查询", url: "https://ip.breezexing.xyz/", icon: "material-symbols:network-check" },
+		{ name: "IT 工具", url: "https://ittools.breezexing.xyz/", icon: "material-symbols:build-outline" },
+		{ name: "小说搜索", url: "https://novel.breezexing.xyz/", icon: "material-symbols:menu-book-outline" },
 	],
 	headline: "祝愿各位",
 	headlineMessages: [
@@ -382,10 +392,8 @@ export const mingxinConfig: MingxinConfig = {
 	soundPress: "/assets/images/mingxin/doll-press.mp3",
 	soundLoosen: "/assets/images/mingxin/doll-loosen.mp3",
 	music: {
-		metingApi: "https://api.injahow.cn/meting/?server=:server&type=:type&id=:id",
-		metingSources: [
-			{ server: "netease", type: "playlist", id: "14164869977", label: "扩展歌单" },
-		],
-		playerVariant: "pill",
+		metingApi: "/api/music/meting?server=:server&type=:type&id=:id",
+		metingSources: [],
+		playerVariant: "ball",
 	},
 };

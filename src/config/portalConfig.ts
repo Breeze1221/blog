@@ -29,7 +29,7 @@ export const portalConfig: PortalConfig = {
 		},
 		{
 			name: "评论管理",
-			url: "https://waline.lanerc.me/ui",
+			url: "https://waline.breezexing.xyz/ui",
 			note: "Waline 后台",
 		},
 		{
@@ -54,16 +54,6 @@ export const portalConfig: PortalConfig = {
 			url: "https://breezexing.xyz",
 			note: "当前线路",
 			current: true,
-		},
-		{
-			name: "国内备用线路",
-			url: "https://hk.lanerc.me",
-			note: "香港前置",
-		},
-		{
-			name: "海外加速线路",
-			url: "https://origin.lanerc.me",
-			note: "CF 直达",
 		},
 	],
 };

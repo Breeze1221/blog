@@ -13,6 +13,79 @@
 	const isEmbed = new URLSearchParams(location.search).get("embed") === "1";
 
 	/* ---------------------------------------------------------------------- */
+	/* 零、主题同步：开屏配色跟随博客内部（localStorage theme / hue）          */
+	/* ---------------------------------------------------------------------- */
+	const DEFAULT_HUE = 174;
+
+	function readLocal(key) {
+		try {
+			return localStorage.getItem(key);
+		} catch {
+			return null;
+		}
+	}
+
+	function hslToRgb(h, s, l) {
+		h = ((h % 360) + 360) % 360;
+		s /= 100;
+		l /= 100;
+		const c = (1 - Math.abs(2 * l - 1)) * s;
+		const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+		const m = l - c / 2;
+		let r = 0;
+		let g = 0;
+		let b = 0;
+		if (h < 60) [r, g, b] = [c, x, 0];
+		else if (h < 120) [r, g, b] = [x, c, 0];
+		else if (h < 180) [r, g, b] = [0, c, x];
+		else if (h < 240) [r, g, b] = [0, x, c];
+		else if (h < 300) [r, g, b] = [x, 0, c];
+		else [r, g, b] = [c, 0, x];
+		return [r, g, b].map((v) => Math.round((v + m) * 255));
+	}
+
+	function toHex(rgb) {
+		return (
+			"#" +
+			rgb.map((v) => v.toString(16).padStart(2, "0")).join("")
+		);
+	}
+
+	function applyBlogTheme() {
+		const stored = readLocal("theme") || "system";
+		const mode =
+			stored === "system"
+				? window.matchMedia("(prefers-color-scheme: dark)").matches
+					? "dark"
+					: "light"
+				: stored;
+		root.dataset.theme = mode;
+		const dark = mode === "dark";
+		const parsedHue = Number.parseFloat(readLocal("hue") || "");
+		const hue = Number.isFinite(parsedHue) ? parsedHue : DEFAULT_HUE;
+
+		const accent = hslToRgb(hue, dark ? 62 : 55, dark ? 78 : 36);
+		const accent2 = hslToRgb(hue + 18, dark ? 50 : 45, dark ? 72 : 34);
+		const h1Tail = hslToRgb(hue, dark ? 50 : 42, dark ? 68 : 42);
+		const p1 = hslToRgb(hue, 70, dark ? 58 : 45);
+		const p2 = hslToRgb(hue + 20, 55, dark ? 55 : 48);
+
+		root.style.setProperty("--accent", toHex(accent));
+		root.style.setProperty("--accent2", toHex(accent2));
+		root.style.setProperty("--h1-tail", toHex(h1Tail));
+		root.style.setProperty("--p1", p1.join(", "));
+		root.style.setProperty("--p2", p2.join(", "));
+		root.style.setProperty(
+			"--bg-glow-1",
+			`rgba(${p1.join(", ")}, ${dark ? 0.3 : 0.26})`,
+		);
+		root.style.setProperty(
+			"--bg-glow-2",
+			`rgba(${p2.join(", ")}, ${dark ? 0.24 : 0.22})`,
+		);
+	}
+
+	/* ---------------------------------------------------------------------- */
 	/* 一、玻璃雨：雨丝 + 凝结水珠                                             */
 	/* ---------------------------------------------------------------------- */
 	const canvas = document.getElementById("rain");
@@ -409,7 +482,13 @@
 	}
 
 	themeToggle?.addEventListener("click", () => {
-		root.dataset.theme = root.dataset.theme === "light" ? "dark" : "light";
+		const next = root.dataset.theme === "light" ? "dark" : "light";
+		try {
+			localStorage.setItem("theme", next);
+		} catch {
+			/* localStorage 不可用时仅切换本次开屏 */
+		}
+		applyBlogTheme();
 		paintThemeIcon();
 	});
 
@@ -437,6 +516,117 @@
 	}
 
 	/* ---------------------------------------------------------------------- */
+	/* 云上音乐：歌单 601947159，点击开屏页直接播放                            */
+	/* ---------------------------------------------------------------------- */
+	const MUSIC_PLAYLIST_ID = "601947159";
+	const musicAudio = /** @type {HTMLAudioElement | null} */ (
+		document.getElementById("wMusic")
+	);
+	const musicLink = document.getElementById("wAudio");
+	const musicNote = musicLink?.querySelector(".w-audio-note");
+	const musicText = musicLink?.querySelector(".w-audio-text");
+	let musicTracks = null;
+	let musicLoading = false;
+
+	function setMusicText(text) {
+		if (musicText) musicText.textContent = text;
+	}
+
+	async function fetchProxyTracks() {
+		const res = await fetch(
+			`/api/music/meting?server=netease&type=playlist&id=${MUSIC_PLAYLIST_ID}`,
+		);
+		if (!res.ok) throw new Error("proxy " + res.status);
+		const data = await res.json();
+		if (!Array.isArray(data) || !data.length) throw new Error("empty");
+		return data;
+	}
+
+	async function fetchDirectTracks() {
+		const detail = await fetch(
+			`https://musicapi.breezexing.xyz/playlist/track/all?id=${MUSIC_PLAYLIST_ID}&limit=100&offset=0`,
+		).then((r) => r.json());
+		const songs = (detail?.songs || []).slice(0, 50);
+		if (!songs.length) throw new Error("empty");
+		const urls = await fetch(
+			`https://musicapi.breezexing.xyz/song/url/v1?id=${songs.map((s) => s.id).join(",")}&level=exhigh`,
+		).then((r) => r.json());
+		const urlById = new Map(
+			(urls?.data || [])
+				.filter((x) => x?.url)
+				.map((x) => [String(x.id), x.url]),
+		);
+		return songs
+			.map((song) => ({
+				title: song.name || "",
+				url: (urlById.get(String(song.id)) || "").replace(
+					/^http:\/\//i,
+					"https://",
+				),
+			}))
+			.filter((track) => track.url);
+	}
+
+	async function loadMusicTracks() {
+		if (musicTracks) return musicTracks;
+		let tracks = [];
+		try {
+			tracks = await fetchProxyTracks();
+		} catch {
+			tracks = await fetchDirectTracks();
+		}
+		musicTracks = tracks;
+		return tracks;
+	}
+
+	async function toggleMusic() {
+		if (!musicAudio || !musicLink) return;
+		if (!musicAudio.src) {
+			if (musicLoading) return;
+			musicLoading = true;
+			setMusicText("云上音乐 · 加载中");
+			try {
+				const tracks = await loadMusicTracks();
+				const first = tracks.find((track) => track?.url);
+				if (!first) throw new Error("empty");
+				musicAudio.src = first.url;
+				setMusicText(first.title || "云上音乐");
+			} catch {
+				setMusicText("云上音乐 · 暂时不可用");
+				musicLoading = false;
+				return;
+			}
+			musicLoading = false;
+		}
+		if (musicAudio.paused) {
+			try {
+				await musicAudio.play();
+			} catch {
+				setMusicText("云上音乐 · 点击重试");
+			}
+		} else {
+			musicAudio.pause();
+		}
+	}
+
+	musicLink?.addEventListener("click", (event) => {
+		event.preventDefault();
+		event.stopPropagation();
+		void toggleMusic();
+	});
+
+	musicAudio?.addEventListener("play", () => {
+		if (musicNote) musicNote.textContent = "❚❚";
+	});
+	musicAudio?.addEventListener("pause", () => {
+		if (musicNote) musicNote.textContent = "♪";
+	});
+	musicAudio?.addEventListener("error", () => {
+		if (musicNote) musicNote.textContent = "♪";
+		setMusicText("云上音乐 · 播放失败");
+	});
+
+	/* ---------------------------------------------------------------------- */
 	/* 六、进入动作                                                           */
 	/* ---------------------------------------------------------------------- */
 	function enter(href) {
@@ -455,7 +645,7 @@
 		"click",
 		(event) => {
 			const target = /** @type {HTMLElement | null} */ (event.target);
-			const link = target?.closest?.(".w-enter, #wAudio");
+			const link = target?.closest?.(".w-enter");
 			if (!(link instanceof HTMLAnchorElement)) return;
 			const href = link.getAttribute("href");
 			if (!href) return;
@@ -468,6 +658,7 @@
 	/* ---------------------------------------------------------------------- */
 	/* 七、启动                                                               */
 	/* ---------------------------------------------------------------------- */
+	applyBlogTheme();
 	resizeRain();
 	applyMist();
 	playReveal();

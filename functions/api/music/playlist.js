@@ -13,7 +13,42 @@ async function fetchText(url, headers = {}, timeout = 9000) {
 	return res.text();
 }
 
+// 自建网易云 API（musicapi.breezexing.xyz）优先，取不到再回落官方接口
+const NETEASE_API = "https://musicapi.breezexing.xyz";
+
 async function playlistNetease(id) {
+	let name = "";
+	let songs = [];
+	try {
+		const all = JSON.parse(
+			await fetchText(
+				`${NETEASE_API}/playlist/track/all?id=${encodeURIComponent(id)}&limit=500&offset=0`,
+			),
+		);
+		songs = Array.isArray(all?.songs) ? all.songs : [];
+		const detail = JSON.parse(
+			await fetchText(
+				`${NETEASE_API}/playlist/detail?id=${encodeURIComponent(id)}`,
+			),
+		);
+		name = detail?.playlist?.name || "";
+	} catch {
+		songs = [];
+	}
+	if (!songs.length) return playlistNeteaseOfficial(id);
+	const tracks = songs
+		.map((t) => ({
+			id: String(t.id),
+			name: t.name || "",
+			artist: (t.ar || []).map((a) => a.name).join(" / "),
+			pic: t.al?.picUrl || "",
+		}))
+		.filter((t) => t.id);
+	if (!tracks.length) throw new Error("网易云歌单为空");
+	return { name, tracks };
+}
+
+async function playlistNeteaseOfficial(id) {
 	const text = await fetchText(
 		`https://music.163.com/api/v3/playlist/detail?id=${encodeURIComponent(id)}`,
 		{ Referer: "https://music.163.com/" },
@@ -120,6 +155,8 @@ export async function onRequestGet(context) {
 		"lanerc.me",
 		"origin.lanerc.me",
 		"hk.lanerc.me",
+		"breezexing.xyz",
+		"www.breezexing.xyz",
 		"firefly-6sp.pages.dev",
 		"localhost",
 		"127.0.0.1",

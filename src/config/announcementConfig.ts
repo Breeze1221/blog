@@ -5,7 +5,7 @@ export const announcementConfig: AnnouncementConfig = {
 	title: "",
 
 	// 公告内容（静态模式用）
-	content: "欢迎来到Breeze，这里是我的小站，希望你能在这里找到对自己有价值的东西。如果国内访问不顺畅，可以使用备用线路！",
+	content: "欢迎来到Breeze，这里是我的小站，希望你能在这里找到对自己有价值的东西。",
 
 	// 显示模式：static=静态公告 / geo=访客检测公告（控制台公告页可切换）
 	mode: "static",
@@ -32,7 +32,7 @@ export const announcementConfig: AnnouncementConfig = {
 	// 静态公告的「了解更多」链接
 	link: {
 		// 启用链接
-		enable: true,
+		enable: false,
 		// 链接文本
 		text: "备用线路",
 		// 链接 URL

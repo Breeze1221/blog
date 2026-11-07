@@ -1340,6 +1340,10 @@ const umamiShare = analyticsConfig.umamiAnalytics;
 		inset: 0;
 		z-index: 5;
 		overflow: hidden;
+		/* 只在收缩段可见；默认藏起来，脚本未执行/执行失败时也不会露出
+		   下面那张还没居中的过渡图（2026-11-06 站长报障：右下角图片重叠） */
+		opacity: 0;
+		visibility: hidden;
 		will-change: clip-path;
 	}
 	.mingxin-blinds__portal-image {
@@ -1349,6 +1353,9 @@ const umamiShare = analyticsConfig.umamiAnalytics;
 		width: 100vw;
 		height: 100vh;
 		object-fit: cover;
+		/* 必须与控制器初始化的 transform 契约一致：居中位移写死在默认态，
+		   否则脚本跑到之前这张图从视口中心起铺，右下角会露出四分之一画面 */
+		transform: translate(-50%, -50%);
 		transform-origin: center;
 		will-change: transform;
 	}

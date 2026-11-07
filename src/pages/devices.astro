@@ -2,11 +2,6 @@
 import { Icon } from "astro-icon/components";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import phoneBg from "@/assets/images/devices/phone.jpg";
-import laptopBg from "@/assets/images/devices/laptop.jpg";
-import tabletBg from "@/assets/images/devices/tablet.jpg";
-import watchBg from "@/assets/images/devices/watch.jpg";
-import earbuds1Bg from "@/assets/images/devices/earbuds1.jpg";
-import earbuds2Bg from "@/assets/images/devices/earbuds2.jpg";
 
 const title = "我的设备";
 const description = "日常在用的设备";
@@ -24,64 +19,14 @@ interface Device {
 
 const devices: Device[] = [
 	{
-		name: "OPPO Reno12",
-		brand: "OPPO",
+		name: "XiaoMi 13",
+		brand: "XiaoMi",
 		specs: "国行",
 		desc: "主力手机，日常使用。",
 		icon: "material-symbols:smartphone",
 		status: "active",
 		statusText: "主力在服役",
 		bg: phoneBg,
-	},
-	{
-		name: "MECHREVO",
-		brand: "机械革命",
-		specs: "i7-12800HX / 16GB RAM",
-		desc: "主力电脑，写代码、折腾的主力机。",
-		icon: "material-symbols:laptop-mac",
-		status: "active",
-		statusText: "主力在服役",
-		bg: laptopBg,
-	},
-	{
-		name: "iPad 11",
-		brand: "Apple",
-		specs: "A16 / WLAN 版",
-		desc: "主力平板，看文档、记笔记。",
-		icon: "material-symbols:tablet-mac",
-		status: "active",
-		statusText: "主力在服役",
-		bg: tabletBg,
-	},
-	{
-		name: "Watch GT 2",
-		brand: "HUAWEI",
-		specs: "",
-		desc: "戴了很久的手表。",
-		icon: "material-symbols:watch",
-		status: "retiring",
-		statusText: "快退役了",
-		bg: watchBg,
-	},
-	{
-		name: "AirPods 3",
-		brand: "Apple",
-		specs: "",
-		desc: "主力耳机。",
-		icon: "material-symbols:headphones",
-		status: "active",
-		statusText: "主力在服役",
-		bg: earbuds1Bg,
-	},
-	{
-		name: "Enco Air 4",
-		brand: "OPPO",
-		specs: "",
-		desc: "备用耳机。",
-		icon: "material-symbols:headphones",
-		status: "active",
-		statusText: "主力在服役",
-		bg: earbuds2Bg,
 	},
 ];
 

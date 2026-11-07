@@ -55,6 +55,102 @@ import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 import { remarkMark } from "./src/plugins/remark-mark.js";
 import { remarkWikiLink } from "./src/plugins/remark-wiki-link.js";
 import { collectUsedFontCssVars } from "./src/utils/fontHelper";
+import * as metingHandler from "./functions/api/music/meting.js";
+import * as lyricHandler from "./functions/api/music/lyric.js";
+import * as playlistHandler from "./functions/api/music/playlist.js";
+import * as resolveHandler from "./functions/api/music/resolve.js";
+
+// 本地 `pnpm dev` / `pnpm preview` 不会运行 Cloudflare Pages Functions，
+// 这里把 functions/api/music/* 挂到 Vite 中间件上，保证本地也能加载歌单。
+const MUSIC_API_HANDLERS = {
+	"/api/music/meting": metingHandler,
+	"/api/music/lyric": lyricHandler,
+	"/api/music/playlist": playlistHandler,
+	"/api/music/resolve": resolveHandler,
+};
+
+// Functions 里用到 caches.default，Node 侧补个内存实现。
+// 键必须按 URL（不能是 String(Request)），命中后也要返回克隆，否则第二个请求
+// 读到已被消费的 body 会抛 “Body has already been read”。
+function installCachesPolyfill() {
+	// 配置热重启会复用同一个 Node 进程，用标记判断是否已装过，避免重复重建 Map
+	if (globalThis.caches?.__musicApiDev) return;
+	const keyOf = (key) =>
+		typeof key === "string" ? key : key?.url ? key.url : String(key);
+	const store = new Map();
+	globalThis.caches = {
+		default: {
+			async match(key) {
+				const hit = store.get(keyOf(key));
+				return hit ? hit.clone() : undefined;
+			},
+			async put(key, response) {
+				store.set(keyOf(key), response.clone());
+			},
+			async delete(key) {
+				return store.delete(keyOf(key));
+			},
+		},
+	};
+	globalThis.caches.__musicApiDev = true;
+}
+
+function musicApiDevPlugin() {
+	const middleware = async (req, res, next) => {
+		const path = String(req.url || "")
+			.split("?")[0]
+			.replace(/\/+$/, "");
+		const handler = MUSIC_API_HANDLERS[path];
+		if (!handler || typeof handler.onRequestGet !== "function") {
+			next();
+			return;
+		}
+		try {
+			installCachesPolyfill();
+			const origin = `http://${req.headers.host || "localhost"}`;
+			const request = new Request(`${origin}${req.url}`, {
+				method: req.method || "GET",
+				headers: req.headers,
+			});
+			const response = await handler.onRequestGet({
+				request,
+				env: {},
+				params: {},
+				waitUntil: () => {},
+				next: () => new Response("Not Found", { status: 404 }),
+			});
+			res.statusCode = response.status;
+			response.headers.forEach((value, key) => res.setHeader(key, value));
+			res.end(await response.text());
+		} catch (error) {
+			console.error("[music-api-dev]", error?.stack || error);
+			res.statusCode = 502;
+			res.setHeader("content-type", "application/json");
+			res.end(JSON.stringify({ error: String(error?.message || error) }));
+		}
+	};
+	// Astro 的 trailingSlash 中间件会先一步把 /api/music/meting（无尾斜杠）判成 404，
+	// 所以这里直接插到 Connect 栈最前面，保证音乐接口优先命中。
+	const registerAtFront = (server) => {
+		const stack = server.middlewares?.stack;
+		if (Array.isArray(stack)) {
+			stack.unshift({ route: "", handle: middleware });
+			return;
+		}
+		server.middlewares.use(middleware);
+	};
+	return {
+		name: "music-api-dev",
+		configureServer(server) {
+			// Astro 在本插件的 `configureServer` 返回钩子里才把 trailingSlash 中间件插到栈首，
+			// 所以这里也返回一个后置钩子，等它插完再把音乐接口插到最前面。
+			return () => registerAtFront(server);
+		},
+		configurePreviewServer(server) {
+			registerAtFront(server);
+		},
+	};
+}
 
 if (process.env.NODE_ENV === "development") {
 	setMaxListeners(20);
@@ -353,7 +449,7 @@ export default defineConfig({
 		}),
 	},
 	vite: {
-		plugins: [tailwindcss()],
+		plugins: [tailwindcss(), musicApiDevPlugin()],
 		server: {
 			watch: {
 				ignored: ["**/package/**", "**/Firefly-docs/**"],

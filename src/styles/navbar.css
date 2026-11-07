@@ -318,6 +318,80 @@ body.wallpaper-transparent #navbar-wrapper #navbar[data-full-width="true"] > div
     }
 }
 
+/* ============================================
+ * 中段菜单与右侧控件的防重叠
+ * 本站导航项较多（8 项、其中 4 个下拉），默认 px-4 + 图标两重间距（
+ * flex gap-1.5 与 mr-1.5）在 1500px 上下就会顶到右侧搜索框：这里按宽度
+ * 分级收紧一级项占位，并给中段留出右侧呼吸位，菜单不再压到搜索框上
+ * ============================================ */
+
+/* 一级项：px-4 → px-3；图标只留一层 4px 间距 */
+#navbar .navbar-seg-center .dropdown-container > a,
+#navbar .navbar-seg-center .dropdown-trigger {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+/* 下拉箭头绝对定位在右侧，触发钮仍保留让位 */
+#navbar .navbar-seg-center .dropdown-trigger {
+    padding-right: 1.75rem;
+}
+#navbar .navbar-seg-center .dropdown-container > a > div,
+#navbar .navbar-seg-center .dropdown-trigger > div {
+    gap: 0.25rem;
+}
+#navbar .navbar-seg-center .dropdown-container > a > div > .navbar-icon,
+#navbar .navbar-seg-center .dropdown-trigger > div > .navbar-icon {
+    margin-right: 0.25rem;
+}
+/* 项间空隙 4px → 2px */
+#navbar .navbar-seg-center > .dropdown-container + .dropdown-container {
+    margin-left: 0.125rem;
+}
+/* 中段右侧留 12px：居中对齐时多让一格给搜索框 */
+#navbar .navbar-seg-center {
+    padding-right: 0.75rem;
+}
+
+/* 中等宽度：桌面搜索框收窄，给菜单让位（聚焦时再展开） */
+@media (max-width: 1535px) {
+    #search-bar input {
+        width: 8rem;
+    }
+    #search-bar input:focus {
+        width: 12rem;
+    }
+}
+
+/* 窄桌面：一级项让出图标，只留文字菜单（纸舟墨/手册本就隐藏图标，不受影响） */
+@media (max-width: 1439px) {
+    #navbar .navbar-seg-center .dropdown-container > a > div > .navbar-icon,
+    #navbar .navbar-seg-center .dropdown-trigger > div > .navbar-icon {
+        display: none;
+    }
+    #navbar .navbar-seg-center .dropdown-container > a,
+    #navbar .navbar-seg-center .dropdown-trigger {
+        padding-left: 0.625rem;
+        padding-right: 0.625rem;
+    }
+    #navbar .navbar-seg-center .dropdown-trigger {
+        padding-right: 1.625rem;
+    }
+    #navbar .navbar-seg-center > .dropdown-container + .dropdown-container {
+        margin-left: 0;
+    }
+}
+
+/* 平板/窄窗（1024–1159）：横向菜单已放不下，收进汉堡抽屉
+   （纸舟手册的竖排 rail 与三段胶囊有自己的收拢逻辑，维持原样） */
+@media (min-width: 1024px) and (max-width: 1159px) {
+    html:not([data-navbar-style="segment"]):not([data-site-mode="paper"][data-paper-theme="manual"]) #navbar .navbar-seg-center {
+        display: none;
+    }
+    html:not([data-navbar-style="segment"]):not([data-site-mode="paper"][data-paper-theme="manual"]) #nav-menu-switch {
+        display: inline-flex;
+    }
+}
+
 /* semi 滚动后加回投影 */
 html[data-has-wallpaper] #navbar[data-transparent-mode="semi"].navbar-sticky-shadow>div {
     box-shadow: inset 0 1px 0 var(--navbar-glass-highlight), 0 1px 0 var(--navbar-glass-hairline) !important;

@@ -1,6 +1,6 @@
 ---
 import { Icon } from "astro-icon/components";
-import { analyticsConfig, commentConfig } from "@/config";
+import { analyticsConfig } from "@/config";
 import UmamiMetrics from "@/components/analytics/UmamiMetrics.astro";
 import AnalyticsSnapshot from "@/components/widget/AnalyticsSnapshot.astro";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
@@ -21,7 +21,6 @@ const umamiOrigin = (() => {
 	}
 })();
 const publicShareUrl = hasPublicStats && umamiOrigin ? `${umamiOrigin}/share/${shareId}` : "";
-const walineServerUrl = commentConfig.waline?.serverURL ?? "";
 ---
 
 <MainGridLayout title="站点统计" description="基于 Umami 的公开站点访问统计">
@@ -494,39 +493,6 @@ const walineServerUrl = commentConfig.waline?.serverURL ?? "";
 						<span>查看详细来源</span>
 						<Icon is:inline name="material-symbols:arrow-outward-rounded" aria-hidden="true" />
 					</a>
-				</section>
-
-				<section
-					class="analytics-comments analytics-comments--sidebar analytics-panel card-base"
-					aria-labelledby="analytics-comments-title"
-					data-recent-comments
-					data-comment-server={walineServerUrl}
-				>
-					<header class="analytics-panel__header analytics-comments__header">
-						<div>
-							<p class="analytics-section-kicker">COMMUNITY / RECENT NOTES</p>
-							<h2 id="analytics-comments-title">最近评论</h2>
-							<p class="analytics-panel__description">有人来过，也留下了几句值得被看见的话。</p>
-						</div>
-						<div class="analytics-comments__header-meta">
-							<span class="analytics-panel__badge">Waline · 最新 8 条</span>
-							<a href="/guestbook/">去留言板</a>
-						</div>
-					</header>
-					<ul class="analytics-comments__list" data-comments-list aria-live="polite">
-						{Array.from({ length: 6 }, () => (
-							<li class="analytics-comment analytics-comment--skeleton" data-comment-skeleton>
-								<span class="analytics-comment__avatar"></span>
-								<span class="analytics-comment__body">
-									<span class="analytics-comment__skeleton-line analytics-comment__skeleton-line--name"></span>
-									<span class="analytics-comment__skeleton-line analytics-comment__skeleton-line--meta"></span>
-									<span class="analytics-comment__skeleton-line analytics-comment__skeleton-line--text"></span>
-									<span class="analytics-comment__skeleton-line analytics-comment__skeleton-line--text-short"></span>
-								</span>
-							</li>
-						))}
-					</ul>
-					<p class="analytics-comments__status" data-comments-status role="status" aria-live="polite">正在读取最近评论…</p>
 				</section>
 			</aside>
 		</div>

@@ -251,12 +251,6 @@ export const navBarConfig: NavBarConfig = {
 					external: true,
 					icon: "material-symbols:train",
 				},
-				{
-					name: "开往旧站",
-					url: "https://www.lanerc.me",
-					external: true,
-					icon: "material-symbols:train",
-				},
 			],
 		},
 	],

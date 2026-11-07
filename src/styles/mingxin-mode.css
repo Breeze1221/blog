@@ -1366,6 +1366,7 @@ html[data-site-mode="mingxin"] #navbar-wrapper.navbar-hidden {
 	.mxprofile-card__sites-bar {
 		display: flex;
 		align-items: center;
+		flex: none;
 		gap: 0.75rem;
 		padding: 0.7rem 0.85rem;
 	}
@@ -1416,6 +1417,15 @@ html[data-site-mode="mingxin"] #navbar-wrapper.navbar-hidden {
 	}
 	.mxprofile-card__sites-stack .mxprofile-card__site-avatar + .mxprofile-card__site-avatar {
 		margin-left: -0.5rem;
+	}
+	/* 配 Iconify 图标名（线性图标）时叶片标让位，图标按比例居中 */
+	.mxprofile-card__site-avatar.is-icon-name .mxprofile-card__site-avatar-leaf {
+		display: none;
+	}
+	.mxprofile-card__site-avatar-icon {
+		width: 70%;
+		height: 70%;
+		color: color-mix(in oklch, var(--deep-text) 72%, transparent);
 	}
 	/* 叶片标垫底，配了 icon 才压上 favicon img。img 默认不可见，加载成功
 	   加 is-loaded 才亮出；失败被标记后直接撤下——未加载成功的 img 永远
@@ -1483,10 +1493,20 @@ html[data-site-mode="mingxin"] #navbar-wrapper.navbar-hidden {
 			transform 200ms ease-out,
 			visibility 0s linear 200ms;
 	}
+	/* 站点条数多时展开面板受卡片高度限制：栏固定、列表吃掉剩余高度并内部滚动 */
+	.mxprofile-card__sites[data-mxprofile-sites-open="true"] {
+		display: flex;
+		flex-direction: column;
+	}
 	.mxprofile-card__sites[data-mxprofile-sites-open="true"] .mxprofile-card__sites-list {
 		opacity: 1;
 		transform: translateY(0);
 		visibility: visible;
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		scrollbar-width: thin;
 		transition:
 			opacity 200ms ease-out 90ms,
 			transform 200ms ease-out 90ms,

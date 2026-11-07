@@ -1,0 +1,267 @@
+---
+// 自定义鼠标特效：中心圆点（即时跟随）+ 外圈（缓动跟随）+ 移动/点击涟漪。
+// 配置见 src/config/effectsConfig.ts；触屏设备、开启「减少动态效果」的系统自动禁用。
+// 样式为全局样式：光标元素由脚本动态创建，无法享受 Astro 的 scoped 样式。
+---
+
+<style is:global>
+	/* 启用时隐藏系统光标（文本输入区保留 I 型光标，避免无法定位输入点） */
+	body.custom-cursor,
+	body.custom-cursor * {
+		cursor: none !important;
+	}
+
+	body.custom-cursor input,
+	body.custom-cursor textarea,
+	body.custom-cursor [contenteditable="true"] {
+		cursor: text !important;
+	}
+
+	/* ---------- 中心圆点 & 外圈 ---------- */
+
+	.cursor-dot,
+	.cursor-ring {
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: 8px;
+		height: 8px;
+		margin: -4px 0 0 -4px; /* 让 translate(x, y) 落在元素中心 */
+		border-radius: 50%;
+		pointer-events: none;
+		background: var(--cursor-accent, var(--primary));
+		opacity: 0;
+		will-change: transform;
+		transition:
+			width 0.25s ease,
+			height 0.25s ease,
+			margin 0.25s ease,
+			background 0.25s ease,
+			border-color 0.25s ease,
+			opacity 0.3s ease;
+	}
+
+	/* 首次鼠标移动后才显示（避免默认悬在屏幕中央） */
+	.cursor-dot.visible,
+	.cursor-ring.visible {
+		opacity: 1;
+	}
+
+	/* 悬停可点击元素：圆点缩小 */
+	.cursor-dot.hovered {
+		width: 5px;
+		height: 5px;
+		margin: -2.5px 0 0 -2.5px;
+	}
+
+	/* ---------- 外圈（缓动跟随） ---------- */
+
+	.cursor-ring {
+		width: 22px;
+		height: 22px;
+		margin: -11px 0 0 -11px;
+		background: transparent;
+		border: 1.5px solid
+			color-mix(in oklch, var(--cursor-accent, var(--primary)) 55%, transparent);
+	}
+
+	/* 悬停可点击元素：外圈染色 */
+	.cursor-ring.hovered {
+		border-color: var(--cursor-accent, var(--primary));
+	}
+
+	/* ---------- 涟漪（移动 / 点击触发） ---------- */
+
+	.mouse-ripple {
+		position: fixed;
+		width: 16px;
+		height: 16px;
+		margin: -8px 0 0 -8px;
+		border-radius: 50%;
+		border: 1.5px solid
+			color-mix(in oklch, var(--cursor-accent, var(--primary)) 45%, transparent);
+		pointer-events: none;
+		animation: cursor-effect-ripple 0.9s ease-out forwards;
+	}
+
+	.mouse-ripple.big {
+		width: 12px;
+		height: 12px;
+		margin: -6px 0 0 -6px;
+		border-color: var(--cursor-accent, var(--primary));
+		animation-duration: 0.6s;
+	}
+
+	@keyframes cursor-effect-ripple {
+		from {
+			opacity: 0.75;
+			transform: scale(0.5);
+		}
+		to {
+			opacity: 0;
+			transform: scale(2.6);
+		}
+	}
+
+	/* ---------- 可访问性：尊重用户的「减少动态效果」偏好 ---------- */
+
+	@media (prefers-reduced-motion: reduce) {
+		.cursor-dot,
+		.cursor-ring,
+		.mouse-ripple {
+			display: none !important;
+		}
+	}
+</style>
+
+<script>
+	import { cursorConfig } from "@/config";
+
+	/**
+	 * 鼠标静止时外圈缓动循环自动停帧，等下次 mouseover 再唤醒；
+	 * 圆点与外圈同帧写入 transform，避免重复布局。
+	 */
+	(function setupCursorEffect() {
+		const w = window as unknown as Record<string, unknown>;
+		// 幂等守卫：Swup 软导航重跑脚本时避免重复创建 DOM 与监听器
+		if (w.__cursorFxInitialized) return;
+		w.__cursorFxInitialized = true;
+
+		if (!cursorConfig.enable) return;
+		// 可访问性：尊重「减少动态效果」偏好
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+		// 触屏设备没有 hover 指针，跳过
+		if (!window.matchMedia("(hover: hover)").matches) return;
+
+		const zIndex = String(cursorConfig.zIndex);
+		const rippleZIndex = String(cursorConfig.zIndex - 1);
+
+		/* ---------- 创建光标 DOM ---------- */
+
+		const dot = document.createElement("div");
+		dot.className = "cursor-dot";
+		dot.setAttribute("aria-hidden", "true");
+		dot.style.zIndex = zIndex;
+
+		const ring = document.createElement("div");
+		ring.className = "cursor-ring";
+		ring.setAttribute("aria-hidden", "true");
+		ring.style.zIndex = zIndex;
+
+		document.body.append(dot, ring);
+		document.body.classList.add("custom-cursor");
+
+		/* ---------- 状态 ---------- */
+
+		let mx = window.innerWidth / 2; // 真实鼠标坐标
+		let my = window.innerHeight / 2;
+		let rx = mx; // 外圈缓动坐标
+		let ry = my;
+		let lastX = mx; // 上一次泛起涟漪的位置
+		let lastY = my;
+		let shown = false;
+		let ringRunning = false;
+		let lastRippleAt = 0;
+
+		/* ---------- 工具 ---------- */
+
+		const show = () => {
+			if (shown) return;
+			shown = true;
+			dot.classList.add("visible");
+			ring.classList.add("visible");
+		};
+
+		const hide = () => {
+			if (!shown) return;
+			shown = false;
+			dot.classList.remove("visible");
+			ring.classList.remove("visible");
+		};
+
+		const spawnRipple = (x: number, y: number, big = false) => {
+			const s = document.createElement("span");
+			s.className = big ? "mouse-ripple big" : "mouse-ripple";
+			s.style.left = `${x}px`;
+			s.style.top = `${y}px`;
+			s.style.zIndex = rippleZIndex;
+			document.body.appendChild(s);
+			s.addEventListener("animationend", () => s.remove(), { once: true });
+			// 兜底：动画被系统偏好关闭时 animationend 不会触发，仍需回收节点
+			window.setTimeout(() => s.remove(), 1200);
+		};
+
+		/* ---------- 缓动循环 ---------- */
+
+		const ringLoop = () => {
+			// 外圈每帧逼近真实鼠标位置（系数越小越「黏」，越大越跟手）
+			rx += (mx - rx) * 0.18;
+			ry += (my - ry) * 0.18;
+
+			// 追上了 → 对齐并停帧，等下次鼠标再动时由 mousemove 唤醒
+			const settled = Math.abs(mx - rx) < 0.1 && Math.abs(my - ry) < 0.1;
+			if (settled) {
+				rx = mx;
+				ry = my;
+			}
+
+			// 圆点即时跟随 + 外圈缓动，同帧写入避免重排
+			dot.style.transform = `translate3d(${mx}px, ${my}px, 0)`;
+			ring.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
+
+			if (settled) {
+				ringRunning = false;
+				return;
+			}
+			requestAnimationFrame(ringLoop);
+		};
+
+		const ringKick = () => {
+			if (ringRunning) return;
+			ringRunning = true;
+			requestAnimationFrame(ringLoop);
+		};
+
+		/* ---------- 事件 ---------- */
+
+		const onMove = (e: MouseEvent) => {
+			show();
+			mx = e.clientX;
+			my = e.clientY;
+			ringKick();
+
+			// 移动超过 42px 泛起一圈小涟漪，并节流避免高速移动时堆积节点
+			const now = performance.now();
+			if (
+				now - lastRippleAt > 90 &&
+				Math.hypot(mx - lastX, my - lastY) > 42
+			) {
+				spawnRipple(mx, my);
+				lastX = mx;
+				lastY = my;
+				lastRippleAt = now;
+			}
+		};
+
+		const onDown = (e: MouseEvent) => {
+			spawnRipple(e.clientX, e.clientY, true);
+		};
+
+		const onOver = (e: MouseEvent) => {
+			const target = e.target as Element | null;
+			const hit = Boolean(target?.closest?.("a, button, [role='button']"));
+			ring.classList.toggle("hovered", hit);
+			dot.classList.toggle("hovered", hit);
+		};
+
+		const onLeave = () => hide();
+
+		window.addEventListener("mousemove", onMove, { passive: true });
+		window.addEventListener("mousedown", onDown, { passive: true });
+		window.addEventListener("mouseover", onOver, { passive: true });
+		document.documentElement.addEventListener("mouseleave", onLeave);
+
+		// 启动一次循环让初始位置对齐
+		ringKick();
+	})();
+</script>

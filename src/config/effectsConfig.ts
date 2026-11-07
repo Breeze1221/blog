@@ -1,4 +1,8 @@
-import type { ParticleEffectConfig, SakuraConfig } from "../types/effectsConfig";
+import type {
+	CursorEffectConfig,
+	ParticleEffectConfig,
+	SakuraConfig,
+} from "../types/effectsConfig";
 
 // 特效配置 - 集中管理所有动画特效
 
@@ -173,4 +177,13 @@ export const clickConfig: ParticleEffectConfig = {
 
 	// 层级
 	zIndex: 100,
+};
+
+// 自定义鼠标特效（中心圆点 + 缓动外圈 + 移动/点击涟漪，见 CursorEffect.astro）
+export const cursorConfig: CursorEffectConfig = {
+	// 是否启用鼠标特效（启用后隐藏系统光标）
+	enable: true,
+
+	// 层级，需高于页面其余元素
+	zIndex: 9999,
 };

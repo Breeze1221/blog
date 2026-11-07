@@ -5,6 +5,7 @@ import MicrosoftClarity from "@components/analytics/MicrosoftClarity.astro";
 import UmamiAnalytics from "@components/analytics/UmamiAnalytics.astro";
 import AstralStarfield from "@components/features/AstralStarfield.astro";
 import CodeGroupManager from "@components/features/CodeGroupManager.astro";
+import CursorEffect from "@components/features/CursorEffect.astro";
 import FancyboxManager from "@components/features/FancyboxManager.astro";
 import FontSetup from "@components/features/FontSetup.astro";
 import GithubCardManager from "@components/features/GithubCardManager.astro";
@@ -552,14 +553,28 @@ const ogImageAlt = propsOgImageAlt ?? pageTitle;
         resolvedNavbarStyle
       );
 
-      // 初始化站点形态 - 优先 localStorage（显示设置里改过时），否则用配置默认
-      const siteModeStored = isSiteModeSwitchable
-        ? localStorage.getItem("siteMode")
-        : null;
-      if (!isSiteModeSwitchable) {
+      // 初始化站点形态：每次新进入都回到配置默认（明信）；同一会话内的
+      // 手动切换仍写入 localStorage 并生效，刷新/再次进入再回到默认。
+      let siteModeStored = "";
+      if (isSiteModeSwitchable) {
+        let firstEntry = false;
+        try {
+          firstEntry = sessionStorage.getItem("siteModeEntryReset") !== "1";
+        } catch {
+          firstEntry = false;
+        }
+        if (firstEntry) {
+          localStorage.removeItem("siteMode");
+          try {
+            sessionStorage.setItem("siteModeEntryReset", "1");
+          } catch {}
+        } else {
+          siteModeStored = localStorage.getItem("siteMode") || "";
+        }
+      } else {
         localStorage.removeItem("siteMode");
       }
-      const resolvedSiteMode = ["full", "pure", "harmony", "brick", "astral", "paper", "mingxin"].includes(siteModeStored)
+      const resolvedSiteMode = siteModeStored && ["full", "pure", "harmony", "brick", "astral", "paper", "mingxin"].includes(siteModeStored)
         ? siteModeStored
         : defaultSiteMode;
       document.documentElement.setAttribute(
@@ -1102,6 +1117,9 @@ const ogImageAlt = propsOgImageAlt ?? pageTitle;
 
     <!-- Particle Effects（雪花 / 萤火虫） -->
     <ParticleEffects />
+
+    <!-- Cursor Effect（中心圆点 + 缓动外圈 + 移动/点击涟漪） -->
+    <CursorEffect />
 
     <!-- 碎碎念弹幕（第二批，常驻层） -->
     <DanmakuLayer />

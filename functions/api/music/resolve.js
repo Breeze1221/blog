@@ -11,6 +11,7 @@ const CACHE_TTL_MS = 21600000;
 const HTTP_URL_REGEX = /^https?:\/\//i;
 
 const XINGHAI_MAIN_API = "https://music-api.gdstudio.xyz/api.php";
+const NETEASE_API = "https://musicapi.breezexing.xyz";
 const SUYIN_QQ_API = "https://oiapi.net/api/QQ_Music";
 const SUYIN_QQ_KEY = "oiapi-ef6133b7-ac2f-dc7d-878c-d3e207a82575";
 const SUYIN_163_API = "https://oiapi.net/api/Music_163";
@@ -382,6 +383,23 @@ async function xinghaiMainGetUrl(platform, songId, quality, songInfo) {
 	return body.url;
 }
 
+async function neteaseApiGetUrl(platform, songId, quality, songInfo) {
+	if (platform !== "wy") throw new Error("自建网易云API仅支持网易云");
+	const id = songId || getHashOrMid(songInfo);
+	if (!id) throw new Error("自建网易云API缺少songId");
+	const res = await httpRequest(
+		NETEASE_API +
+			"/song/url/v1?id=" +
+			encodeURIComponent(id) +
+			"&level=" +
+			encodeURIComponent(qualityToNetease(quality)),
+		{ method: "GET", timeout: 6000 },
+	);
+	const item = Array.isArray(res.body?.data) ? res.body.data[0] : null;
+	if (!item?.url) throw new Error("自建网易云API未返回可用URL");
+	return item.url;
+}
+
 function extractQQUrl(responseData) {
 	if (responseData?.music) return responseData.music;
 	if (responseData?.url) return responseData.url;
@@ -550,6 +568,7 @@ async function nianxinGetUrl(platform, songId, quality, songInfo) {
 }
 
 const SOURCE_HANDLERS = {
+	neteaseApi: { name: "自建网易云API", fn: neteaseApiGetUrl },
 	xinghai: { name: "星海主", fn: xinghaiMainGetUrl },
 	suyinQQ: {
 		name: "溯音QQ",
@@ -572,7 +591,10 @@ const SOURCE_HANDLERS = {
 };
 
 function buildSourceChain(platform) {
-	const chain = [SOURCE_HANDLERS.xinghai];
+	const chain = [];
+	// 网易云优先走自建 API（与歌单同源），失败再落到原聚合链
+	if (platform === "wy") chain.push(SOURCE_HANDLERS.neteaseApi);
+	chain.push(SOURCE_HANDLERS.xinghai);
 	if (platform === "wy") chain.push(SOURCE_HANDLERS.suyin163);
 	if (platform === "tx") chain.push(SOURCE_HANDLERS.suyinQQ);
 	if (platform === "kw") chain.push(SOURCE_HANDLERS.suyinSearch);
@@ -720,6 +742,8 @@ export async function onRequestGet(context) {
 		"lanerc.me",
 		"origin.lanerc.me",
 		"hk.lanerc.me",
+		"breezexing.xyz",
+		"www.breezexing.xyz",
 		"firefly-6sp.pages.dev",
 		"localhost",
 		"127.0.0.1",

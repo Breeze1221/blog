@@ -5,6 +5,19 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>Breezeの个人博客</title>
 	<link rel="stylesheet" href="welcome.css" />
+	<script>
+		(function () {
+			try {
+				var t = localStorage.getItem("theme") || "system";
+				if (t === "system") {
+					t = window.matchMedia("(prefers-color-scheme: dark)").matches
+						? "dark"
+						: "light";
+				}
+				document.documentElement.dataset.theme = t;
+			} catch (e) {}
+		})();
+	</script>
 </head>
 <body class="welcome">
 	<!-- 天空 / 光晕 / 雾 -->
@@ -58,6 +71,7 @@
 		<span class="w-audio-note">♪</span>
 		<span class="w-audio-text">云上音乐</span>
 	</a>
+	<audio id="wMusic" preload="none" hidden></audio>
 
 	<!-- 右下：氛围滑块 -->
 	<div class="w-controls">

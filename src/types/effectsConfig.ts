@@ -31,3 +31,9 @@ export type ParticleEffectConfig = {
 	count: number; // 粒子数量
 	zIndex: number; // 层级
 };
+
+// 自定义鼠标特效配置（中心圆点 + 缓动外圈 + 移动/点击涟漪，见 CursorEffect.astro）
+export type CursorEffectConfig = {
+	enable: boolean; // 是否启用（启用后隐藏系统光标）
+	zIndex: number; // 层级
+};

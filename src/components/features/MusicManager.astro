@@ -104,6 +104,8 @@ const managerConfigStr = JSON.stringify({
 
     // ── State ────────────────────────────────────────────────
     var loadVersion = 0; // incremented on each loadTrack to discard stale play() results
+    var timeUpdateRaf = 0; // rAF 节流 timeupdate，避免与滚动抢主线程
+    var cachedDurationStr = '0:00'; // duration 不变，缓存格式化结果
     var state = {
         playlist: [],
         currentIndex: 0,
@@ -385,30 +387,40 @@ const managerConfigStr = JSON.stringify({
     // ── Audio events → broadcast ─────────────────────────────
     audio.addEventListener('timeupdate', function () {
         if (isNaN(audio.duration)) return;
-        var ct = audio.currentTime;
-        var dur = audio.duration;
-        var pct = (ct / dur) * 100;
+        // rAF 合并：多帧内的多次 timeupdate 只处理最后一次，避免与滚动抢主线程
+        if (timeUpdateRaf !== 0) return;
+        timeUpdateRaf = requestAnimationFrame(function () {
+            timeUpdateRaf = 0;
+            var ct = audio.currentTime;
+            var dur = audio.duration;
+            var pct = (ct / dur) * 100;
 
-        emit('fm:time', {
-            currentTime: ct,
-            duration: dur,
-            progress: pct,
-            currentTimeStr: formatTime(ct),
-            durationStr: formatTime(dur)
+            emit('fm:time', {
+                currentTime: ct,
+                duration: dur,
+                progress: pct,
+                currentTimeStr: formatTime(ct),
+                durationStr: cachedDurationStr
+            });
+
+            // Lyrics sync
+            if (state.lyrics.length > 0) {
+                var idx = -1;
+                for (var i = 0; i < state.lyrics.length; i++) {
+                    if (ct >= state.lyrics[i].time) idx = i;
+                    else break;
+                }
+                if (idx !== state.currentLrcIndex) {
+                    state.currentLrcIndex = idx;
+                    emit('fm:lrc-index', { index: idx });
+                }
+            }
         });
+    });
 
-        // Lyrics sync
-        if (state.lyrics.length > 0) {
-            var idx = -1;
-            for (var i = 0; i < state.lyrics.length; i++) {
-                if (ct >= state.lyrics[i].time) idx = i;
-                else break;
-            }
-            if (idx !== state.currentLrcIndex) {
-                state.currentLrcIndex = idx;
-                emit('fm:lrc-index', { index: idx });
-            }
-        }
+    // duration 只在换曲时变化，loadedmetadata 时刷新缓存
+    audio.addEventListener('loadedmetadata', function () {
+        cachedDurationStr = formatTime(audio.duration);
     });
 
     audio.addEventListener('ended', function () {
