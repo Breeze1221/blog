@@ -27,6 +27,21 @@ const initialLayoutClass =
 // 列表模式封面位置，只有 left 需要额外样式，right 是默认布局
 const coverPositionClass =
 	siteConfig.postListLayout.coverPosition === "left" ? " cover-left" : "";
+
+// 首页分区（站长参考稿）：置顶文章单独成组，其余为「最新文章」。
+// 分区标题只在素简形态手机端点亮（pure-mode.css），其余形态/桌面端整组摊平、标题隐藏。
+const isFirstPage = page.currentPage === 1;
+const pinnedPosts = isFirstPage
+	? page.data.filter((entry: PostEntry) => entry.data.pinned)
+	: [];
+const latestPosts = isFirstPage
+	? page.data.filter((entry: PostEntry) => !entry.data.pinned)
+	: page.data;
+const latestIndex = pinnedPosts.length > 0 ? "02" : "01";
+
+// 文章真实序号：按 published 升序（最老一篇 = 1），取文章在整页数据里的原始位置
+const postNumber = (entry: PostEntry): number =>
+	page.total - ((page.currentPage - 1) * page.size + page.data.indexOf(entry));
 ---
 
 <div
@@ -36,30 +51,75 @@ const coverPositionClass =
   data-mobile-default-layout={mobileDefaultLayout}
   data-masonry-enabled={masonryEnabled}
   data-column-width={columnWidth}
+  data-home-first={isFirstPage ? "true" : "false"}
   style={`--post-card-min-width: ${columnWidth}px;`}
 >
   {
-    page.data.map((entry: PostEntry, index: number) => (
-      <PostCard
-        no={page.total - ((page.currentPage - 1) * page.size + index)}
-        entry={entry}
-        title={entry.data.title}
-        tags={entry.data.tags}
-        category={entry.data.category}
-        published={entry.data.published}
-        updated={entry.data.updated}
-        url={getPostUrlBySlug(entry.id)}
-        image={entry.data.image}
-        description={entry.data.description}
-        draft={entry.data.draft}
-        pinned={entry.data.pinned}
-        password={!!entry.data.password}
-        loading={index < 2 ? "eager" : "lazy"}
-        class:list="onload-animation post-card-item"
-        style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
-      />
-    ))
+    pinnedPosts.length > 0 && (
+      <section class="post-section post-section-pinned" data-post-section="pinned">
+        <header class="post-section-head">
+          <span class="post-section-kicker">01 · 置顶</span>
+          <h2 class="post-section-title">精选</h2>
+        </header>
+        <div class="post-section-list">
+          {pinnedPosts.map((entry: PostEntry, index: number) => (
+            <PostCard
+              no={postNumber(entry)}
+              entry={entry}
+              title={entry.data.title}
+              tags={entry.data.tags}
+              category={entry.data.category}
+              published={entry.data.published}
+              updated={entry.data.updated}
+              url={getPostUrlBySlug(entry.id)}
+              image={entry.data.image}
+              description={entry.data.description}
+              draft={entry.data.draft}
+              pinned={entry.data.pinned}
+              password={!!entry.data.password}
+              loading={index < 2 ? "eager" : "lazy"}
+              class:list="onload-animation post-card-item"
+              style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
+            />
+          ))}
+        </div>
+      </section>
+    )
   }
+  <section class="post-section post-section-latest" data-post-section="latest">
+    {
+      latestPosts.length > 0 && (
+        <header class="post-section-head">
+          <span class="post-section-kicker">{latestIndex} · 最新文章</span>
+          <h2 class="post-section-title">最新</h2>
+        </header>
+      )
+    }
+    <div class="post-section-list">
+      {
+        latestPosts.map((entry: PostEntry, index: number) => (
+          <PostCard
+            no={postNumber(entry)}
+            entry={entry}
+            title={entry.data.title}
+            tags={entry.data.tags}
+            category={entry.data.category}
+            published={entry.data.published}
+            updated={entry.data.updated}
+            url={getPostUrlBySlug(entry.id)}
+            image={entry.data.image}
+            description={entry.data.description}
+            draft={entry.data.draft}
+            pinned={entry.data.pinned}
+            password={!!entry.data.password}
+            loading={index < 2 ? "eager" : "lazy"}
+            class:list="onload-animation post-card-item"
+            style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
+          />
+        ))
+      }
+    </div>
+  </section>
 </div>
 
 <!-- 立即执行脚本：防止刷新时的布局闪烁 -->

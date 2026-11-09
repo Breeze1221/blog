@@ -2,6 +2,13 @@
 import { Icon } from "astro-icon/components";
 import ImageWrapper from "@/components/common/ImageWrapper.astro";
 import { profileConfig } from "@/config/profileConfig";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import {
+	countTotalWords,
+	getCategoryList,
+	getSortedPosts,
+} from "@/utils/content-utils";
 import { encodeMailto, MAILTO_ONCLICK_SCRIPT } from "@/utils/email-utils";
 import { url } from "@/utils/url-utils";
 
@@ -14,6 +21,22 @@ const className = Astro.props.class;
 // 头像：动态/静态切换
 const avatarSrc = profileConfig.avatar || "";
 const useAnimated = !!profileConfig.avatarUseAnimated;
+
+// 资料卡统计行（手机端首页展示）：文章数 · 总字数 · 分类数
+const posts = await getSortedPosts();
+const categories = await getCategoryList();
+const totalWords = countTotalWords(posts);
+
+// 总字数用紧凑写法（48.4K），避免长数字撑破一行
+function formatCompact(num: number): string {
+	if (num >= 1_000_000) {
+		return `${(num / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+	}
+	if (num >= 1000) {
+		return `${(num / 1000).toFixed(1).replace(/\.0$/, "")}K`;
+	}
+	return String(num);
+}
 ---
 
 <div class:list={["card-base", "p-3", className]} style={style}>
@@ -65,6 +88,13 @@ const useAnimated = !!profileConfig.avatarUseAnimated;
     <div class="text-center text-neutral-400 mb-2.5 transition">
       {profileConfig.bio}
     </div>
+    <div class="profile-stats">
+      <span>{posts.length} {i18n(I18nKey.siteStatsPostCount)}</span>
+      <span class="profile-stats-sep">·</span>
+      <span>{formatCompact(totalWords)} {i18n(I18nKey.siteStatsTotalWords)}</span>
+      <span class="profile-stats-sep">·</span>
+      <span>{categories.length} {i18n(I18nKey.siteStatsCategoryCount)}</span>
+    </div>
         <div class="flex flex-wrap gap-2 justify-center mb-1">
             {profileConfig.links.length > 1 && profileConfig.links.map(item =>
                     {
@@ -107,3 +137,10 @@ const useAnimated = !!profileConfig.avatarUseAnimated;
         </div>
   </div>
 </div>
+
+<style>
+  /* 统计行默认隐藏：仅素简形态手机端首页点亮（pure-mode.css） */
+  .profile-stats {
+    display: none;
+  }
+</style>

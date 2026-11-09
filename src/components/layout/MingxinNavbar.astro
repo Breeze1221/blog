@@ -46,13 +46,13 @@ const toolsThemeOptions = [
 
 /* 外观段形态列表（逃生口）：与调色板同一份七形态 */
 const modeOptions = [
-	{ value: "full", label: "华彩" },
-	{ value: "pure", label: "素简" },
-	{ value: "harmony", label: "谐彩" },
-	{ value: "brick", label: "顽彩" },
-	{ value: "astral", label: "璨夜" },
-	{ value: "paper", label: "纸舟" },
-	{ value: "mingxin", label: "明信" },
+	{ value: "full", label: "苍穹" },
+	{ value: "pure", label: "素白" },
+	{ value: "harmony", label: "霓霞" },
+	{ value: "brick", label: "磐石" },
+	{ value: "astral", label: "星河" },
+	{ value: "paper", label: "纸鸢" },
+	{ value: "mingxin", label: "雁书" },
 ] as const;
 
 /* 公告：与侧栏 Announcement 组件同一份 announcementConfig、同一渲染口径——
@@ -358,7 +358,7 @@ const mxHeatmapMonths = await (async () => {
 						<div class="mxnav-appearance__clip">
 							<p class="mxnav-appearance__label">
 								<span>站点形态</span>
-								<span class="mxnav-appearance__current">当前：<span data-mxnav-mode-name>明信</span></span>
+								<span class="mxnav-appearance__current">当前：<span data-mxnav-mode-name>雁书</span></span>
 							</p>
 							<div class="mxnav-appearance__modes" role="radiogroup" aria-label="站点形态">
 								{modeOptions.map((mode) => (

@@ -124,7 +124,7 @@ window.ADMIN_CONFIG = {
     { icon: '☁️', label: 'Cloudflare', url: 'https://dash.cloudflare.com' },
     { icon: '▲', label: 'Vercel', url: 'https://vercel.com/dashboard' },
     { icon: '💬', label: 'Waline 后台', url: 'https://waline.lanerc.me/ui' },
-    { icon: '📊', label: 'Umami 统计', url: 'https://umami.lanerc.me/share/EG15WwHeRvz2lmd2' },
+    { icon: '📊', label: 'Umami 统计', url: 'https://umami.breezexing.xyz/share/dvu6Vig8Ba9AMAfh' },
     { icon: '✨', label: 'Muse', url: 'https://muse.ai' },
     { icon: '🐧', label: 'Linux.do', url: 'https://linux.do/' },
     { icon: '🕰️', label: '旧站', url: 'https://www.lanerc.me' },
@@ -134,6 +134,6 @@ window.ADMIN_CONFIG = {
   // 外部跳转入口：导航栏点击在新标签页打开，不走控制台内部路由
   navExternal: {
     blog: 'https://lanerc.me/',
-    umami: 'https://umami.lanerc.me/share/EG15WwHeRvz2lmd2',
+    umami: 'https://umami.breezexing.xyz/share/dvu6Vig8Ba9AMAfh',
   },
 };

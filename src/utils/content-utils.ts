@@ -46,6 +46,24 @@ export async function getSortedPosts(): Promise<CollectionEntry<"posts">[]> {
 
 	return sorted;
 }
+/** 全站总字数：剔除代码块与内联代码后，中文字符 + 英文字母各计一字 */
+export function countTotalWords(
+	posts: CollectionEntry<"posts">[],
+): number {
+	let total = 0;
+	for (const post of posts) {
+		if (!post.body) continue;
+		const text = post.body
+			.replace(/```[\s\S]*?```/g, "")
+			.replace(/`[^`]*`/g, "")
+			.replace(/\s+/g, " ")
+			.trim();
+		const chineseChars = text.match(/[\u4e00-\u9fa5]/g) || [];
+		const englishChars = text.match(/[a-zA-Z]/g) || [];
+		total += chineseChars.length + englishChars.length;
+	}
+	return total;
+}
 export type PostForList = {
 	id: string;
 	data: CollectionEntry<"posts">["data"];

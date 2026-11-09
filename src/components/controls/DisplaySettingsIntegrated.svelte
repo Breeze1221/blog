@@ -1210,13 +1210,13 @@ $effect(() => {
 				{#each navbarStyleOptions as opt}
 				<button
 					aria-label={i18n(opt.labelKey)}
-					class="flex-1 min-w-[45%] btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={navbarStyle !== opt.value}
+					class="flex-1 min-w-[45%] btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={navbarStyle === opt.value}
+					class:text-(--btn-content)={navbarStyle === opt.value}
 					onclick={() => { navbarStyle = opt.value; }}
 					title={i18n(opt.labelKey)}
 				>
-					<span class="text-xs font-medium">{i18n(opt.labelKey)}</span>
+					<span class="text-xs font-medium" class:font-semibold={navbarStyle === opt.value}>{i18n(opt.labelKey)}</span>
 				</button>
 				{/each}
 			</div>
@@ -1240,13 +1240,13 @@ $effect(() => {
 				{#each siteModeOptions as opt}
 				<button
 					aria-label={i18n(opt.labelKey)}
-					class="flex-1 min-w-[45%] btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={siteMode !== opt.value}
+					class="flex-1 min-w-[45%] btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={siteMode === opt.value}
+					class:text-(--btn-content)={siteMode === opt.value}
 					onclick={() => { siteMode = opt.value; }}
 					title={i18n(opt.labelKey)}
 				>
-					<span class="text-xs font-medium">{i18n(opt.labelKey)}</span>
+					<span class="text-xs font-medium" class:font-semibold={siteMode === opt.value}>{i18n(opt.labelKey)}</span>
 				</button>
 				{/each}
 			</div>
@@ -1257,13 +1257,13 @@ $effect(() => {
 				{#each astralThemeOptions as opt}
 				<button
 					aria-label={opt.label}
-					class="flex-1 min-w-[45%] btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={astralTheme !== opt.value}
+					class="flex-1 min-w-[45%] btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={astralTheme === opt.value}
+					class:text-(--btn-content)={astralTheme === opt.value}
 					onclick={() => { astralTheme = opt.value; }}
 					title={opt.label}
 				>
-					<span class="text-xs font-medium">{opt.label}</span>
+					<span class="text-xs font-medium" class:font-semibold={astralTheme === opt.value}>{opt.label}</span>
 				</button>
 				{/each}
 			</div>
@@ -1276,13 +1276,13 @@ $effect(() => {
 				{#each astralLayoutOptions as opt}
 				<button
 					aria-label={opt.label}
-					class="flex-1 min-w-[45%] btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={astralLayout !== opt.value}
+					class="flex-1 min-w-[45%] btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={astralLayout === opt.value}
+					class:text-(--btn-content)={astralLayout === opt.value}
 					onclick={() => { astralLayout = opt.value; }}
 					title={opt.label}
 				>
-					<span class="text-xs font-medium">{opt.label}</span>
+					<span class="text-xs font-medium" class:font-semibold={astralLayout === opt.value}>{opt.label}</span>
 				</button>
 				{/each}
 			</div>
@@ -1295,13 +1295,13 @@ $effect(() => {
 				{#each paperThemeOptions as opt}
 				<button
 					aria-label={opt.label}
-					class="flex-1 min-w-[45%] btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={paperTheme !== opt.value}
+					class="flex-1 min-w-[45%] btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={paperTheme === opt.value}
+					class:text-(--btn-content)={paperTheme === opt.value}
 					onclick={() => { paperTheme = opt.value; }}
 					title={opt.label}
 				>
-					<span class="text-xs font-medium">{opt.label}</span>
+					<span class="text-xs font-medium" class:font-semibold={paperTheme === opt.value}>{opt.label}</span>
 				</button>
 				{/each}
 			</div>
@@ -1368,9 +1368,9 @@ $effect(() => {
 				{#each harmonySchemeOptions as opt}
 				<button
 					aria-label={i18n(opt.labelKey)}
-					class="btn-regular rounded-md py-2 px-2 flex flex-col items-center justify-center gap-1.5 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={harmonyScheme !== opt.value}
+					class="btn-regular rounded-md py-2 px-2 flex flex-col items-center justify-center gap-1.5 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={harmonyScheme === opt.value}
+					class:text-(--btn-content)={harmonyScheme === opt.value}
 					onclick={() => { harmonyScheme = opt.value; }}
 					title={i18n(opt.labelKey)}
 				>
@@ -1379,7 +1379,7 @@ $effect(() => {
 						<span class="w-3 h-3 rounded-full" style="background: {harmonyDot(HARMONY_SCHEME_PREVIEW[opt.value].s)}"></span>
 						<span class="w-3 h-3 rounded-full" style="background: {harmonyDot(HARMONY_SCHEME_PREVIEW[opt.value].t)}"></span>
 					</span>
-					<span class="text-xs font-medium">{i18n(opt.labelKey)}</span>
+					<span class="text-xs font-medium" class:font-semibold={harmonyScheme === opt.value}>{i18n(opt.labelKey)}</span>
 				</button>
 				{/each}
 			</div>
@@ -1389,23 +1389,23 @@ $effect(() => {
 			<div class="flex gap-2">
 				<button
 					aria-label={i18n(I18nKey.harmonySpec2021)}
-					class="flex-1 btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={harmonySpec !== "2021"}
+					class="flex-1 btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={harmonySpec === "2021"}
+					class:text-(--btn-content)={harmonySpec === "2021"}
 					onclick={() => { harmonySpec = "2021"; }}
 					title={i18n(I18nKey.harmonySpec2021)}
 				>
-					<span class="text-xs font-medium">{i18n(I18nKey.harmonySpec2021)}</span>
+					<span class="text-xs font-medium" class:font-semibold={harmonySpec === "2021"}>{i18n(I18nKey.harmonySpec2021)}</span>
 				</button>
 				<button
 					aria-label={i18n(I18nKey.harmonySpec2025)}
-					class="flex-1 btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={harmonySpec !== "2025"}
+					class="flex-1 btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={harmonySpec === "2025"}
+					class:text-(--btn-content)={harmonySpec === "2025"}
 					onclick={() => { harmonySpec = "2025"; }}
 					title={i18n(I18nKey.harmonySpec2025)}
 				>
-					<span class="text-xs font-medium">{i18n(I18nKey.harmonySpec2025)}</span>
+					<span class="text-xs font-medium" class:font-semibold={harmonySpec === "2025"}>{i18n(I18nKey.harmonySpec2025)}</span>
 				</button>
 			</div>
 
@@ -1415,13 +1415,13 @@ $effect(() => {
 				{#each harmonyTextureOptions as opt}
 				<button
 					aria-label={i18n(opt.labelKey)}
-					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={harmonyTexture !== opt.value}
+					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={harmonyTexture === opt.value}
+					class:text-(--btn-content)={harmonyTexture === opt.value}
 					onclick={() => { harmonyTexture = opt.value; }}
 					title={i18n(opt.labelKey)}
 				>
-					<span class="text-xs font-medium">{i18n(opt.labelKey)}</span>
+					<span class="text-xs font-medium" class:font-semibold={harmonyTexture === opt.value}>{i18n(opt.labelKey)}</span>
 				</button>
 				{/each}
 			</div>
@@ -1528,13 +1528,13 @@ $effect(() => {
 				{#each pureFontOptions as opt}
 				<button
 					aria-label={opt.label || i18n(I18nKey.settingsFontSystem)}
-					class="flex-1 min-w-[45%] btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={pureFont !== opt.value}
+					class="flex-1 min-w-[45%] btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={pureFont === opt.value}
+					class:text-(--btn-content)={pureFont === opt.value}
 					onclick={() => { pureFont = opt.value; }}
 					title={opt.label || i18n(I18nKey.settingsFontSystem)}
 				>
-					<span class="text-xs font-medium">{opt.label || i18n(I18nKey.settingsFontSystem)}</span>
+					<span class="text-xs font-medium" class:font-semibold={pureFont === opt.value}>{opt.label || i18n(I18nKey.settingsFontSystem)}</span>
 				</button>
 				{/each}
 			</div>
@@ -1557,9 +1557,9 @@ $effect(() => {
 			<div class="flex gap-2">
 				<button
 					aria-label={i18n(I18nKey.postListLayoutList)}
-					class="flex-1 btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={currentLayout !== 'list'}
+					class="flex-1 btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={currentLayout === 'list'}
+					class:text-(--btn-content)={currentLayout === 'list'}
 					disabled={isSwitching}
 					onclick={switchLayout}
 					title={i18n(I18nKey.postListLayoutList)}
@@ -1567,13 +1567,13 @@ $effect(() => {
 					<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
 						<path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
 					</svg>
-					<span class="text-xs font-medium">{i18n(I18nKey.postListLayoutList)}</span>
+					<span class="text-xs font-medium" class:font-semibold={currentLayout === 'list'}>{i18n(I18nKey.postListLayoutList)}</span>
 				</button>
 				<button
 					aria-label={i18n(I18nKey.postListLayoutGrid)}
-					class="flex-1 btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={currentLayout !== 'grid'}
+					class="flex-1 btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={currentLayout === 'grid'}
+					class:text-(--btn-content)={currentLayout === 'grid'}
 					disabled={isSwitching}
 					onclick={switchLayout}
 					title={i18n(I18nKey.postListLayoutGrid)}
@@ -1581,7 +1581,7 @@ $effect(() => {
 					<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
 						<path d="M3 3h7v7H3V3zm0 11h7v7H3v-7zm11-11h7v7h-7V3zm0 11h7v7h-7v-7z"/>
 					</svg>
-					<span class="text-xs font-medium">{i18n(I18nKey.postListLayoutGrid)}</span>
+					<span class="text-xs font-medium" class:font-semibold={currentLayout === 'grid'}>{i18n(I18nKey.postListLayoutGrid)}</span>
 				</button>
 			</div>
 		</div>
@@ -1702,40 +1702,40 @@ $effect(() => {
 			</div>
 			<div class="grid grid-cols-2 gap-2">
 				<button
-					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={wallpaperMode !== WALLPAPER_BANNER}
+					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={wallpaperMode === WALLPAPER_BANNER}
+					class:text-(--btn-content)={wallpaperMode === WALLPAPER_BANNER}
 					onclick={() => switchWallpaperMode(WALLPAPER_BANNER)}
 				>
 					<Icon icon="material-symbols:image-outline" class="text-[1.25rem] shrink-0"></Icon>
-					<span class="text-xs font-medium">{i18n(I18nKey.wallpaperBannerMode)}</span>
+					<span class="text-xs font-medium" class:font-semibold={wallpaperMode === WALLPAPER_BANNER}>{i18n(I18nKey.wallpaperBannerMode)}</span>
 				</button>
 				<button
-					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={wallpaperMode !== WALLPAPER_FULLSCREEN}
+					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={wallpaperMode === WALLPAPER_FULLSCREEN}
+					class:text-(--btn-content)={wallpaperMode === WALLPAPER_FULLSCREEN}
 					onclick={() => switchWallpaperMode(WALLPAPER_FULLSCREEN)}
 				>
 					<Icon icon="material-symbols:wallpaper" class="text-[1.25rem] shrink-0"></Icon>
-					<span class="text-xs font-medium">{i18n(I18nKey.wallpaperFullscreenMode)}</span>
+					<span class="text-xs font-medium" class:font-semibold={wallpaperMode === WALLPAPER_FULLSCREEN}>{i18n(I18nKey.wallpaperFullscreenMode)}</span>
 				</button>
 				<button
-					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={wallpaperMode !== WALLPAPER_OVERLAY}
+					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={wallpaperMode === WALLPAPER_OVERLAY}
+					class:text-(--btn-content)={wallpaperMode === WALLPAPER_OVERLAY}
 					onclick={() => switchWallpaperMode(WALLPAPER_OVERLAY)}
 				>
 					<Icon icon="material-symbols:full-coverage-outline-rounded" class="text-[1.25rem] shrink-0"></Icon>
-					<span class="text-xs font-medium">{i18n(I18nKey.wallpaperOverlayMode)}</span>
+					<span class="text-xs font-medium" class:font-semibold={wallpaperMode === WALLPAPER_OVERLAY}>{i18n(I18nKey.wallpaperOverlayMode)}</span>
 				</button>
 				<button
-					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={wallpaperMode !== WALLPAPER_NONE}
+					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={wallpaperMode === WALLPAPER_NONE}
+					class:text-(--btn-content)={wallpaperMode === WALLPAPER_NONE}
 					onclick={() => switchWallpaperMode(WALLPAPER_NONE)}
 				>
 					<Icon icon="material-symbols:hide-image-outline" class="text-[1.25rem] shrink-0"></Icon>
-					<span class="text-xs font-medium">{i18n(I18nKey.wallpaperNoneMode)}</span>
+					<span class="text-xs font-medium" class:font-semibold={wallpaperMode === WALLPAPER_NONE}>{i18n(I18nKey.wallpaperNoneMode)}</span>
 				</button>
 			</div>
 		</div>
@@ -1756,22 +1756,22 @@ $effect(() => {
 			</div>
 			<div class="grid grid-cols-2 gap-2">
 				<button
-					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={fullscreenLayout !== "classic"}
+					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={fullscreenLayout === "classic"}
+					class:text-(--btn-content)={fullscreenLayout === "classic"}
 					onclick={() => switchFullscreenLayout("classic")}
 				>
 					<Icon icon="material-symbols:view-day-outline" class="text-[1.25rem] shrink-0"></Icon>
-					<span class="text-xs font-medium">{i18n(I18nKey.fullscreenClassicLayout)}</span>
+					<span class="text-xs font-medium" class:font-semibold={fullscreenLayout === "classic"}>{i18n(I18nKey.fullscreenClassicLayout)}</span>
 				</button>
 				<button
-					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={fullscreenLayout !== "hero"}
+					class="btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden text-(--content-meta)"
 					class:bg-(--btn-regular-bg-hover)={fullscreenLayout === "hero"}
+					class:text-(--btn-content)={fullscreenLayout === "hero"}
 					onclick={() => switchFullscreenLayout("hero")}
 				>
 					<Icon icon="material-symbols:desktop-landscape-outline-rounded" class="text-[1.25rem] shrink-0"></Icon>
-					<span class="text-xs font-medium">{i18n(I18nKey.fullscreenHeroLayout)}</span>
+					<span class="text-xs font-medium" class:font-semibold={fullscreenLayout === "hero"}>{i18n(I18nKey.fullscreenHeroLayout)}</span>
 				</button>
 			</div>
 		</div>

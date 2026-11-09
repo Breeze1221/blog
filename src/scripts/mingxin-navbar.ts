@@ -40,13 +40,13 @@ type ModeValue =
 	| "mingxin";
 
 const MODE_LABELS: Record<ModeValue, string> = {
-	full: "华彩",
-	pure: "素简",
-	harmony: "谐彩",
-	brick: "顽彩",
-	astral: "璨夜",
-	paper: "纸舟",
-	mingxin: "明信",
+	full: "苍穹",
+	pure: "素白",
+	harmony: "霓霞",
+	brick: "磐石",
+	astral: "星河",
+	paper: "纸鸢",
+	mingxin: "雁书",
 };
 
 function isMingxin(): boolean {

@@ -271,9 +271,20 @@ export function getStoredTheme(): LIGHT_DARK_MODE {
 	) {
 		return getDefaultTheme();
 	}
-	return (
-		(localStorage.getItem("theme") as LIGHT_DARK_MODE) || getDefaultTheme()
-	);
+	const stored = localStorage.getItem("theme");
+	// 校验取值：旧版本/手动改过/其他站点同名键残留的 "auto"、"Light" 这类非法值会让
+	// 顶栏明暗按钮的两个图标层同时 opacity-0（按钮变成空白），这里收回默认值并清掉脏数据
+	if (
+		stored === LIGHT_MODE ||
+		stored === DARK_MODE ||
+		stored === SYSTEM_MODE
+	) {
+		return stored;
+	}
+	if (stored !== null) {
+		localStorage.removeItem("theme");
+	}
+	return getDefaultTheme();
 }
 
 // 初始化主题监听器（用于页面加载后）

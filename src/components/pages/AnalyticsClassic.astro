@@ -63,7 +63,7 @@ const description = "本站的整体访问趋势，不记录任何可识别个�
         <div class="online-badge" id="live-online"><span class="online-dot"></span>{stats.online > 0 ? `${stats.online} 人在线` : "在线"}</div>
         <div class="data-source">
           <div class="ds-label">DATA SOURCE</div>
-          <a href="https://umami.lanerc.me/share/EG15WwHeRvz2lmd2" target="_blank" rel="noopener" class="ds-link">Umami ↗</a>
+          <a href="https://umami.breezexing.xyz/share/dvu6Vig8Ba9AMAfh" target="_blank" rel="noopener" class="ds-link">Umami ↗</a>
           <div class="ds-updated" id="live-updated">正在拉取数据…</div>
           <button id="refresh-stats" class="refresh-btn" title="清除缓存并重新拉取实时数据">🔄 刷新数据</button>
         </div>
@@ -451,7 +451,7 @@ const description = "本站的整体访问趋势，不记录任何可识别个�
         <span class="tag">TOP 国家</span>
       </div>
       <div id="region-map"><p class="muted">加载中…</p></div>
-      <p class="muted small">按近 30 天访客国家统计 · <a href="https://umami.lanerc.me/share/EG15WwHeRvz2lmd2" target="_blank" rel="noopener">查看数据 ↗</a></p>
+      <p class="muted small">按近 30 天访客国家统计 · <a href="https://umami.breezexing.xyz/share/dvu6Vig8Ba9AMAfh" target="_blank" rel="noopener">查看数据 ↗</a></p>
     </section>
 
 
@@ -601,7 +601,7 @@ const description = "本站的整体访问趋势，不记录任何可识别个�
       if (activeEl) activeEl.textContent = active;
       if (peakEl) peakEl.textContent = peak;
       // 拉取该周期的访客数（Umami stats API）
-      // 大陆网络下 umami.lanerc.me 可能连接缓慢，加 8 秒超时避免无限挂起
+      // 大陆网络下 umami.breezexing.xyz 可能连接缓慢，加 8 秒超时避免无限挂起
       try {
         var cached = JSON.parse(localStorage.getItem("lanerc-umami-share-token-v2") || "null");
         var tk = cached && cached.data ? cached.data : null;
@@ -617,7 +617,7 @@ const description = "本站的整体访问趋势，不记录任何可识别个�
           var url = "/api/umami/api/websites/" + info.websiteId + "/stats?startAt=" + start + "&endAt=" + end;
           return fetchWithTimeout(url, { headers: { "x-umami-share-token": info.token, "x-umami-share-context": "1" } }).then(function (r) { return r.json(); });
         };
-        var p = tk ? Promise.resolve(tk) : fetchWithTimeout("/api/umami/api/share/EG15WwHeRvz2lmd2").then(function (r) { return r.json(); }).then(function (d) { return { websiteId: d.websiteId, token: d.token }; });
+        var p = tk ? Promise.resolve(tk) : fetchWithTimeout("/api/umami/api/share/dvu6Vig8Ba9AMAfh").then(function (r) { return r.json(); }).then(function (d) { return { websiteId: d.websiteId, token: d.token }; });
         p.then(doFetch).then(function (s) {
           var vEl = document.querySelector('[data-period-visitors]');
           if (vEl && s && s.visitors != null) vEl.textContent = s.visitors;
@@ -1025,7 +1025,7 @@ const description = "本站的整体访问趋势，不记录任何可识别个�
 // 逻辑：VPS 每 5 分钟生成 /api/stats.json，走 CDN 毫秒级；失败则走下方原有 Umami API
 // is:inline：配合 Swup 无刷新导航，每次进统计页都重新执行
 (function () {
-	var SHARE_ID = "EG15WwHeRvz2lmd2";
+	var SHARE_ID = "dvu6Vig8Ba9AMAfh";
 	var API_BASE = "/api/umami";
 	var TOKEN_KEY = "lanerc-umami-share-token-v2";
 	var DATA_KEY = "lanerc-umami-live";
@@ -1173,7 +1173,7 @@ const description = "本站的整体访问趋势，不记录任何可识别个�
 			var c = JSON.parse(localStorage.getItem("lanerc-umami-share-token-v2") || "null");
 			if (c && Date.now() - c.ts < 86400000) return Promise.resolve(c.data);
 		} catch (e) {}
-		return fetch("/api/umami/api/share/EG15WwHeRvz2lmd2")
+		return fetch("/api/umami/api/share/dvu6Vig8Ba9AMAfh")
 			.then(function (r) { return r.json(); })
 			.then(function (d) {
 				var info = { websiteId: d.websiteId, token: d.token };

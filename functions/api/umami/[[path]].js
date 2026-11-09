@@ -1,7 +1,7 @@
 /* GET/POST /api/umami/* → 代理到 Umami 后端，解决浏览器跨域问题
  * 对应 VPS 上 nginx 的 /api/umami/ 反代，搬到 Pages 后由 Function 接管
  */
-const UPSTREAM = 'https://umami.lanerc.me';
+const UPSTREAM = 'https://umami.breezexing.xyz';
 
 export async function onRequest({ request, params }) {
   const segs = params.path || [];

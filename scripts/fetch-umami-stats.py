@@ -14,8 +14,8 @@ import urllib.request
 import urllib.error
 import urllib.parse
 
-SHARE_ID = "EG15WwHeRvz2lmd2"
-BASE = "https://umami.lanerc.me"
+SHARE_ID = "dvu6Vig8Ba9AMAfh"
+BASE = "https://umami.breezexing.xyz"
 OUTPUT = os.path.join(os.path.dirname(__file__), "..", "src", "data", "umami-stats.json")
 
 # 分享 token（启动时获取一次）

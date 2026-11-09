@@ -326,7 +326,7 @@ export const mingxinConfig: MingxinConfig = {
 			image: "/assets/images/mingxin/scene-1.webp",
 		},
 		{
-			title: "素简开窗",
+			title: "素白开窗",
 			date: "2026/10/27",
 			note: "繁华之外另开一扇素窗，同一间小屋，自此有了两种呼吸。",
 			image: "/assets/images/mingxin/scene-2.webp",
@@ -334,7 +334,7 @@ export const mingxinConfig: MingxinConfig = {
 		{
 			title: "六貌同堂",
 			date: "2026/10/31",
-			note: "华彩、素简、谐彩、顽彩、璨夜、纸舟——一屋六貌，推门便是新天。",
+			note: "苍穹、素白、霓霞、磐石、星河、纸鸢——一屋六貌，推门便是新天。",
 			image: "/assets/images/mingxin/scene-3.webp",
 		},
 		{

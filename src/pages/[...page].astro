@@ -1,16 +1,16 @@
 ---
 import type { GetStaticPaths } from "astro";
 import Pagination from "@/components/common/Pagination.astro";
+import DraggableStickers from "@/components/features/DraggableStickers.astro";
+import MingxinHome from "@/components/layout/MingxinHome.astro";
+import MingxinList from "@/components/layout/MingxinList.astro";
 import PostPage from "@/components/layout/PostPage.astro";
-import { siteConfig } from "@/config";
+import ManualHero from "@/components/widget/ManualHero.astro";
+import Profile from "@/components/widget/Profile.astro";
+import { mingxinConfig, siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import DraggableStickers from "@/components/features/DraggableStickers.astro";
-import ManualHero from "@/components/widget/ManualHero.astro";
-import MingxinHome from "@/components/layout/MingxinHome.astro";
-import MingxinList from "@/components/layout/MingxinList.astro";
-import { mingxinConfig } from "@/config";
 import "@/styles/banner-home.css";
 import { getSortedPosts } from "@/utils/content-utils";
 import { url } from "@/utils/url-utils";
@@ -42,7 +42,11 @@ const heading =
   {/* 手册主题首页字标 hero：默认隐藏（main.css 守卫），仅纸舟·手册点亮 */}
   {page.currentPage === 1 && <ManualHero />}
   {/* 每日选刊只在璨夜瓷砖行显现（站长 2026-10-31 定版），普通形态不再挂 */}
-  <div class="pure-page-info"><span class="pure-page-info-text">第 {page.currentPage} 页 · 本页 {len} 篇，共 {page.total} 篇</span><a href={url("/archive/")}>按年份查看全部文章 →</a></div>
+
+  {/* 手机端首页资料卡：默认隐藏（Profile 自带/纯 CSS 守卫），仅素简 + 手机端点亮，
+      站长的参考稿把资料卡放在内容最前，底部组件里的同名卡在首页隐藏（pure-mode.css） */}
+  {page.currentPage === 1 && <Profile class="mobile-home-profile" />}
+  <div class:list={["pure-page-info", page.currentPage === 1 && "pure-page-info--first"]}><span class="pure-page-info-text">第 {page.currentPage} 页 · 本页 {len} 篇，共 {page.total} 篇</span><a href={url("/archive/")}>按年份查看全部文章 →</a></div>
   <PostPage page={page} />
   {
     page.total > page.size && (

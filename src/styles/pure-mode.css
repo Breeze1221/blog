@@ -480,6 +480,19 @@ html[data-site-mode="pure"] .post-card-bottom-tags > span {
 .pure-page-info {
 	display: none;
 }
+/* 首页分区容器：默认整组摊平（display:contents，卡片照旧参与列表 / 网格），
+   分区标题不出现；只有素简 + 手机端首页才竖排成带编号的分区（见文件末层内块） */
+.post-section,
+.post-section-list {
+	display: contents;
+}
+.post-section-head {
+	display: none;
+}
+/* 手机端首页资料卡：默认不渲染，仅素简 + 手机端点亮 */
+.mobile-home-profile {
+	display: none;
+}
 html[data-site-mode="pure"] .pure-page-info {
 	display: flex;
 	justify-content: space-between;
@@ -830,3 +843,215 @@ html[data-site-mode="pure"][data-wallpaper-mode="fullscreen"][data-fullscreen-la
 
 /* 形态自愈探针：本形态样式真生效时探针=本形态名（Layout 脚本据此自检） */
 html[data-site-mode="pure"] body { --mx-probe: pure; }
+
+/* ============================================================
+ * 手机端：顶栏改悬浮胶囊（对齐站长参考稿 2026-11-07）
+ * 本形态的直角白底规则在 @layer components 里且带 !important，
+ * 层外 !important 压不住（层内 important 优先级反转），固此处同样入层、
+ * 用同名层追加块 + 同特异性靠顺序取胜。
+ * ============================================================ */
+@layer components {
+	@media (max-width: 767px) {
+		html[data-site-mode="pure"] #navbar {
+			position: sticky !important;
+			top: max(0.5rem, env(safe-area-inset-top, 0px)) !important;
+			margin-top: max(0.5rem, env(safe-area-inset-top, 0px)) !important;
+			padding: 0 0.75rem !important;
+			background: transparent !important;
+			border: none !important;
+			box-shadow: none !important;
+		}
+		html[data-site-mode="pure"] #navbar > div,
+		html[data-site-mode="pure"]:not(.dark) #navbar > div,
+		html[data-site-mode="pure"][data-has-wallpaper] body #navbar > div {
+			height: 3.5rem !important;
+			border-radius: 1.75rem !important;
+			background-color: color-mix(in oklch, var(--card-bg) 88%, transparent) !important;
+			-webkit-backdrop-filter: blur(16px) saturate(1.4) !important;
+			backdrop-filter: blur(16px) saturate(1.4) !important;
+			box-shadow:
+				0 8px 24px rgba(0, 0, 0, 0.1),
+				inset 0 0 0 1px color-mix(in oklch, var(--card-bg) 60%, transparent) !important;
+			border: none !important;
+			margin: 0 !important;
+			--navbar-surface-blur: 16px !important;
+		}
+		html.dark[data-site-mode="pure"] #navbar > div {
+			background-color: color-mix(in oklch, var(--card-bg) 82%, transparent) !important;
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+		}
+
+		/* 手机端顶栏补回音乐键（参考稿右侧第四个圆形入口）；背景视频键仍保持隐藏 */
+		html[data-site-mode="pure"] #music-player-switch {
+			display: flex !important;
+		}
+
+		/* ---------- 手机端首页：资料卡 + 分区大标题（站长参考稿 2026-11-08） ---------- */
+		/* 资料卡：参考稿里是页面顶部的无框英雄区，圆头像居中、简介与统计行依次排开 */
+		html[data-site-mode="pure"] .mobile-home-profile {
+			display: block !important;
+			background: transparent !important;
+			border: none !important;
+			box-shadow: none !important;
+			padding: 0.75rem 0 0.5rem !important;
+			margin-bottom: 0.5rem;
+		}
+		html[data-site-mode="pure"] .mobile-home-profile > a:has(.profile-avatar-image) {
+			width: 6.5rem !important;
+			height: 6.5rem !important;
+		}
+		html[data-site-mode="pure"] .mobile-home-profile .profile-avatar-image {
+			box-shadow:
+				0 0 0 1px var(--line-divider),
+				0 8px 24px rgba(0, 0, 0, 0.12);
+		}
+		html[data-site-mode="pure"] .mobile-home-profile .profile-stats {
+			display: flex !important;
+			align-items: center;
+			justify-content: center;
+			flex-wrap: wrap;
+			gap: 0.4rem;
+			margin: 0.25rem 0 0.85rem;
+			font-size: 0.8125rem;
+			color: var(--content-meta);
+		}
+		html[data-site-mode="pure"] .mobile-home-profile .profile-stats-sep {
+			opacity: 0.5;
+		}
+		/* 首页不再重复渲染底部组件里的同名资料卡 */
+		html[data-site-mode="pure"] body.is-home #mobile-bottom-sidebar .card-base:has(.profile-avatar-image) {
+			display: none !important;
+		}
+		/* 首页第一页的资料卡已自带统计，信息行是重复噪音，直接收起 */
+		html[data-site-mode="pure"] body.is-home .pure-page-info--first {
+			display: none !important;
+		}
+
+		/* 分区：置顶 / 最新文章，各带编号小标题 + 大字标题 + 粗横线 */
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section {
+			display: block !important;
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-list {
+			display: flex !important;
+			flex-direction: column;
+			gap: 1rem;
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-head {
+			display: flex !important;
+			flex-direction: column;
+			align-items: flex-start;
+			margin: 1.5rem 0 1rem;
+			border-bottom: 2px solid currentColor;
+			padding-bottom: 0.6rem;
+			color: rgba(0, 0, 0, 0.9);
+		}
+		html.dark[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-head {
+			color: rgba(255, 255, 255, 0.9);
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-kicker {
+			font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+			font-size: 0.6875rem;
+			letter-spacing: 0.14em;
+			/* 编号小字要能读清：--content-meta 偏淡，显式提高一档 */
+			color: rgba(0, 0, 0, 0.55);
+			margin-bottom: 0.4rem;
+		}
+		html.dark[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-kicker {
+			color: rgba(255, 255, 255, 0.62);
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-title {
+			font-size: 2.25rem;
+			font-weight: 800;
+			line-height: 1.1;
+			letter-spacing: -0.02em;
+			margin: 0;
+			/* 参考稿的高对比墨色：暗色下 body 继承到初始黑，必须显式给前景色 */
+			color: rgba(0, 0, 0, 0.9);
+		}
+		html.dark[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-title {
+			color: rgba(255, 255, 255, 0.9);
+		}
+
+		/* 置顶卡：加粗描边 + 下方错位细线，参考稿的「双层纸边」 */
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-pinned .post-card-wrapper {
+			border: 1.5px solid color-mix(in srgb, currentColor 70%, transparent) !important;
+			box-shadow:
+				0 4px 0 -1.5px var(--page-bg),
+				0 4px 0 0 color-mix(in srgb, currentColor 70%, transparent) !important;
+		}
+		/* 置顶卡不保留右侧「进入」按钮，正文占满整卡 */
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-pinned .post-card-enter-btn {
+			display: none !important;
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-pinned .post-card-content {
+			width: 100% !important;
+		}
+
+		/* 最新文章：左侧时间轴（竖线 + 空心圆点），只留标题与元信息 */
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-section-list {
+			position: relative;
+			padding-left: 1.25rem;
+			gap: 1.25rem;
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-section-list::before {
+			content: "";
+			position: absolute;
+			left: 0.28rem;
+			top: 0.4rem;
+			bottom: 0.4rem;
+			width: 1px;
+			background: rgba(0, 0, 0, 0.16);
+		}
+		html.dark[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-section-list::before {
+			background: rgba(255, 255, 255, 0.2);
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-card-item {
+			position: relative;
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-card-item::before {
+			content: "";
+			position: absolute;
+			left: calc(-1.25rem + 0.28rem - 4px);
+			top: 0.35rem;
+			width: 8px;
+			height: 8px;
+			border-radius: 999px;
+			border: 1.5px solid var(--content-meta);
+			background: var(--page-bg);
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-card-wrapper {
+			background: transparent !important;
+			border: none !important;
+			border-radius: 0 !important;
+			box-shadow: none !important;
+			/* 卡片默认 overflow:hidden 会裁掉左侧时间轴圆点 */
+			overflow: visible !important;
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-card-content {
+			padding: 0 !important;
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-card-image,
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-card-enter-btn,
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .description,
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-card-bottom-tags,
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .stats {
+			display: none !important;
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-card-title {
+			font-size: 1.0625rem !important;
+			font-weight: 600 !important;
+			line-height: 1.55 !important;
+			margin-bottom: 0.35rem !important;
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-meta {
+			order: 2 !important;
+			margin: 0 !important;
+			font-size: 0.75rem;
+		}
+		html[data-site-mode="pure"] #post-list-container[data-home-first="true"] .post-section-latest .post-meta .meta-icon {
+			display: none !important;
+		}
+	}
+}
+
+

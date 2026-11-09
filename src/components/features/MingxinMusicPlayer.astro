@@ -2244,6 +2244,19 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 	.mxball__cover.is-empty {
 		opacity: 0;
 	}
+	/* 封面未就绪时球体给一层柔光底，避免整颗纯黑（参考稿里是首曲封面做默认态） */
+	.mxball:has(.mxball__cover.is-empty)::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background: linear-gradient(
+			135deg,
+			rgba(255, 255, 255, 0.18),
+			rgba(255, 255, 255, 0.04) 45%,
+			rgba(255, 255, 255, 0.12)
+		);
+	}
 	.mxball.is-playing .mxball__cover {
 		animation-play-state: running;
 	}
@@ -4659,12 +4672,27 @@ const renderPlayer = fpEnabled && fpPlaylists.length > 0;
 					if (t.pic) {
 						ballCover.src = t.pic;
 						ballCover.classList.remove("is-empty");
+						// 记下首曲封面：下次进站歌单还在路上时先顶上去，不留黑球
+						if (index < 0) {
+							try {
+								localStorage.setItem("mxball-first-cover", t.pic);
+							} catch {}
+						}
 					} else {
 						ballCover.classList.add("is-empty");
 					}
 					updateBallListState();
 				};
 				audio.addEventListener("loadstart", ballSyncTrack);
+
+				// 首屏先亮上次记住的首曲封面（歌单接口回来后再校正）
+				try {
+					const cachedFirstCover = localStorage.getItem("mxball-first-cover");
+					if (cachedFirstCover) {
+						ballCover.src = cachedFirstCover;
+						ballCover.classList.remove("is-empty");
+					}
+				} catch {}
 
 				// 歌单是异步拉的，等它落位后再同步首曲信息
 				let ballWaitTries = 0;

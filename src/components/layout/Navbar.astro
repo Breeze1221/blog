@@ -124,7 +124,6 @@ const logoVariants = await Promise.all(
 			src: logoConfig?.type === "url" ? variant.value : url(variant.value),
 		})),
 );
-
 ---
 <div id="navbar" class="z-50" style={`--navbar-glass-blur: ${navbarBlur}px;`} data-transparent-mode={navbarTransparentMode} data-is-home={isHomePageCheck} data-full-width={navbarWidthFull}>
     <script is:inline define:vars={{
@@ -164,6 +163,10 @@ const logoVariants = await Promise.all(
     ]}>
         <div class="navbar-segments mx-auto h-full w-full max-w-(--page-width) grid grid-cols-[auto_minmax(0,1fr)_auto] items-center">
           <div class="navbar-seg navbar-seg-left flex items-center">
+            {/* 移动端菜单钮：参考稿里汉堡在胶囊最左（桌面由 navbar.css 隐藏） */}
+            <button aria-label="Menu" aria-controls="nav-menu-panel" aria-expanded="false" name="Nav Menu" class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90" id="nav-menu-switch">
+                <Icon name="material-symbols:menu-rounded" class="text-[1.25rem]"></Icon>
+            </button>
             <a href={url('/')} class="btn-plain scale-animation rounded-lg h-13 px-3 md:px-5 font-bold active:scale-95">
                 <div class:list={[
                     "flex flex-row items-center text-md",
@@ -237,9 +240,6 @@ const logoVariants = await Promise.all(
                 {/* @ts-ignore */}
                 <LightDarkSwitch client:load></LightDarkSwitch>
               </div>
-                <button aria-label="Menu" aria-controls="nav-menu-panel" aria-expanded="false" name="Nav Menu" class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90" id="nav-menu-switch">
-                    <Icon name="material-symbols:menu-rounded" class="text-[1.25rem]"></Icon>
-                </button>
                 {/* 三段胶囊收拢态（PC）快捷面板：点行保持收拢、原位弹出对应子卡；其余样式/移动端不启用（CSS 控制显隐） */}
                 <div id="navbar-quick-panel" class="float-panel float-panel-closed absolute top-full right-0 mt-2 w-max min-w-52 p-1.5 z-50" data-floating-panel data-floating-panel-trigger="nav-menu-switch" inert aria-hidden="true">
                     <button type="button" class="navbar-quick-row" data-quick-action="search">

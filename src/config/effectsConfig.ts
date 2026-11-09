@@ -54,8 +54,9 @@ export const sakuraConfig: SakuraConfig = {
 		fadeSpeed: 0.03,
 	},
 
-	// 层级，确保樱花在合适的层级显示
-	zIndex: 100,
+	// 层级：高于正文与卡片，低于导航栏(60) / 底部 Dock(74)，
+	// 避免花瓣落在浮动面板与按钮上压低文字可读性
+	zIndex: 45,
 };
 
 // 雪花特效（轻量粒子引擎，与萤火虫共用 ParticleEffects.astro）

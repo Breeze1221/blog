@@ -71,22 +71,22 @@ published: 2026-10-23T18:31:00+08:00
 
 ::github{repo="CuteLeaf/Firefly"}
 
-[朝朝听雨的 Aemeath](https://github.com/Jarvis0227/Aemeath) 是第二形态「素简」的出处：他的 Pure——简洁导航、专注阅读——我照着逐项对回来，在这边落了地，他的仓库我也一直在跟。
+[朝朝听雨的 Aemeath](https://github.com/Jarvis0227/Aemeath) 是第二形态「素白」的出处：他的 Pure——简洁导航、专注阅读——我照着逐项对回来，在这边落了地，他的仓库我也一直在跟。
 
 ::github{repo="Jarvis0227/Aemeath"}
 
-[MmzMing 的博客](https://github.com/MmzMing/my-blog) 是第七形态「明信」的源头：海报机、五幕横滑和那只黑猫，都出自他的实现，我照着移植了一套到这边。
+[MmzMing 的博客](https://github.com/MmzMing/my-blog) 是第七形态「雁书」的源头：海报机、五幕横滑和那只黑猫，都出自他的实现，我照着移植了一套到这边。
 
 ::github{repo="MmzMing/my-blog"}
 
-[LyraVoid 的 Shirone](https://github.com/LyraVoid/Shirone) 是「谐彩」的视觉语言来源：一套 Material 3 的主题，色阶、柔影和竖条母题都从它那儿来。
+[LyraVoid 的 Shirone](https://github.com/LyraVoid/Shirone) 是「霓霞」的视觉语言来源：一套 Material 3 的主题，色阶、柔影和竖条母题都从它那儿来。
 
 ::github{repo="LyraVoid/Shirone"}
 
-[UpXuu 的 xuhome](https://github.com/ImUpXuu/xuhome) 是第四形态「顽彩」的出处：玩具砖块粗野主义——粗蓝边、硬阴影、积木感，整套视觉都照着它对的。
+[UpXuu 的 xuhome](https://github.com/ImUpXuu/xuhome) 是第四形态「磐石」的出处：玩具砖块粗野主义——粗蓝边、硬阴影、积木感，整套视觉都照着它对的。
 
 ::github{repo="ImUpXuu/xuhome"}
 
-其余形态也各有出处：璨夜参考 XingHuiSama 的星空毛玻璃，纸面参考[轻笑Chuckle](https://qcqx.cn)，手册参考[终末地博客](https://tblog.amamo.top)。
+其余形态也各有出处：星河参考 XingHuiSama 的星空毛玻璃，纸面参考[轻笑Chuckle](https://qcqx.cn)，手册参考[终末地博客](https://tblog.amamo.top)。
 
 如果这些项目也帮到了你，去给它们点个 Star 就是最好的感谢。
