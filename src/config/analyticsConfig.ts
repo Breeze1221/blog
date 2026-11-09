@@ -15,7 +15,7 @@ export const analyticsConfig: AnalyticsConfig = {
 		// 本站部署在 Vercel（无 Cloudflare Pages Functions），同源代理由 vercel.json 的
 		// rewrites 把 /api/umami/* 转发到 Umami 实例；若代理未生效可临时改回
 		// "https://umami.breezexing.xyz" 直连（对方带 Access-Control-Allow-Origin: *）
-		shareApiBase: "https://breezexing.xyz/api/umami",
+		shareApiBase: "https://www.breezexing.xyz/api/umami",
 		// Umami 上线之前的历史量（本站统计一直走 Umami，无历史量可叠）
 		historicalStats: { visitors: 0, pageviews: 0 },
 		// Umami JS地址，支持使用自建
