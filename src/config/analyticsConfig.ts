@@ -12,9 +12,9 @@ export const analyticsConfig: AnalyticsConfig = {
 		// 公开分享 ID（统计页 azuma 版用；配合下方 shareApiBase 取数）
 		shareId: "dvu6Vig8Ba9AMAfh",
 		// 必须是绝对地址：统计组件用 new URL() 拼接口，相对地址会直接抛 Invalid URL、数据全挂。
-		// 本站部署在 Vercel（无 Cloudflare Pages Functions），同源代理由 vercel.json 的
-		// rewrites 把 /api/umami/* 转发到 Umami 实例；若代理未生效可临时改回
-		// "https://umami.breezexing.xyz" 直连（对方带 Access-Control-Allow-Origin: *）
+		// 注意主机名：博客实际跑在 blog.breezexing.xyz（www 是另一个导航站项目，没有这条重写）。
+		// 同源代理由 vercel.json 的 rewrites 把 /api/umami/* 转发到 Umami 实例；
+		// 若代理未生效可临时改回 "https://umami.breezexing.xyz" 直连（对方带 Access-Control-Allow-Origin: *）
 		shareApiBase: "https://blog.breezexing.xyz/api/umami",
 		// Umami 上线之前的历史量（本站统计一直走 Umami，无历史量可叠）
 		historicalStats: { visitors: 0, pageviews: 0 },
