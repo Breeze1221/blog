@@ -311,7 +311,7 @@ export const siteConfig: SiteConfig = {
 	// ── Bilibili配置 ──────────────────────────────────
 	bilibili: {
 		// 你的 Bilibili 用户 UID
-		uid: "452211565",
+		uid: "357411980",
 	},
 
 	// ── 番组计划bangumi配置 ──────────────────────────────────
